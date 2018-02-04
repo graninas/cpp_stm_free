@@ -1,10 +1,10 @@
 #include <QString>
 #include <QtTest>
 
+#include <stm.h>
+
 #include "common.h"
-#include "address.h"
-#include "person.h"
-#include "account.h"
+#include "fork.h"
 
 using namespace sample;
 
@@ -24,9 +24,18 @@ STMTest::STMTest()
 {
 }
 
+ForkState takeFork(stm::TVar<Fork>& const fork)
+{
+    return ForkState::Free;
+}
+
 void STMTest::stmTest()
 {
-    QVERIFY(20 == 20);
+    auto fork1 = newTVarIO();
+    stm::STM scenario = takeFork(fork1);
+    auto state = stm::atomically(scenario);
+
+    QVERIFY(state == ForkState::Taken);
 }
 
 QTEST_APPLESS_MAIN(STMTest)

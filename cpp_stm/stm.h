@@ -1,11 +1,13 @@
-#ifndef LENS_H
-#define LENS_H
+#ifndef STM_H
+#define STM_H
 
 #include <functional>
 
-namespace lenses
+namespace stm
 {
 
-} // namespace lenses
 
-#endif // LENS_H
+
+} // namespace stm
+
+#endif // STM_H

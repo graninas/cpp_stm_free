@@ -25,7 +25,8 @@ HEADERS += \
     address.h \
     common.h \
     car.h \
-    account.h
+    account.h \
+    fork.h
 
 
 # stm targets
