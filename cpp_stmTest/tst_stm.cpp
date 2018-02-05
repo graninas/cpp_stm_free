@@ -39,16 +39,26 @@ STMTest::STMTest()
 //    return a4.amber;
 //};
 
-
-const std::function<stm::STM<Unit>(stm::TVar<Fork>) takeFork =
+const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
     [](const stm::TVar<Fork>& tFork)
 {
-    return
-       stm::bindVoid(
-            stm::readTVar(tFork),
-            [](const Fork& fork) { stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
-        );
+    auto fork = stm::readTVar(tFork);
+    auto r2   = stm::bind(
+                    r1,
+                    [](const Fork& fork) { return stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
+                );
+    return fp::unit;
 };
+
+//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    return
+//       stm::bindVoid(
+//            stm::readTVar(tFork),
+//            [](const Fork& fork) { return stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
+//        );
+//};
 
 //    auto fork = stm::readTVar(tFork);
 //    switch (fork.state)
@@ -59,7 +69,7 @@ const std::function<stm::STM<Unit>(stm::TVar<Fork>) takeFork =
 //        case ForkState::Free:
 //        break;
 //    }
-//    return unit();
+//    return fp::unit;
 
 void STMTest::stmTest()
 {
