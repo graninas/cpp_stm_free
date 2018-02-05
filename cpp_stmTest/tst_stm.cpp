@@ -24,14 +24,24 @@ STMTest::STMTest()
 {
 }
 
-ForkState takeFork(stm::TVar<Fork>& const fork)
+const std::function<stm::STM<Unit>(stm::TVar<Fork>) =
+        [](const stm::TVar<Fork>& tFork)
 {
-    return ForkState::Free;
-}
+    auto fork = stm::readTVar(tFork);
+    switch (fork.state)
+    {
+        case ForkState::Taken:
+            stm::writeTVar(tFork, Fork(fork.name, ForkState::Free));
+        break;
+        case ForkState::Free:
+        break;
+    }
+    return unit();
+};
 
 void STMTest::stmTest()
 {
-    auto fork1 = newTVarIO();
+    auto fork1 = stm::newTVarIO<Fork>();
     stm::STM scenario = takeFork(fork1);
     auto state = stm::atomically(scenario);
 
