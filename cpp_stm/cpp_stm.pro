@@ -15,7 +15,9 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES +=
 
 HEADERS += \
-    stm.h
+    stm.h \
+    tvar.h \
+    bind.h
 
 unix {
     target.path = /usr/lib

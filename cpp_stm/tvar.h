@@ -1,15 +1,13 @@
-#ifndef STM_H
-#define STM_H
+#ifndef TVAR_H
+#define TVAR_H
 
 #include <functional>
-
-#include <tvar.h>
 
 namespace stm
 {
 
 template <typename T>
-struct STM
+struct TVar
 {
 
 };
@@ -17,4 +15,4 @@ struct STM
 
 } // namespace stm
 
-#endif // STM_H
+#endif // TVAR_H
