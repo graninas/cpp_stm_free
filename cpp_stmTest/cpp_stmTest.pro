@@ -26,7 +26,8 @@ HEADERS += \
     common.h \
     car.h \
     account.h \
-    fork.h
+    fork.h \
+    monad_syntax_experiments.h
 
 
 # stm targets

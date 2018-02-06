@@ -13,6 +13,13 @@ namespace stm
 {
 
 template <typename T, typename Next>
+struct NewTVar
+{
+    T val;
+    Next next;
+};
+
+template <typename T, typename Next>
 struct ReadTVar
 {
     TVar<T> tvar;
@@ -47,18 +54,26 @@ struct Free<PureC, AlgebraMethod, Ret>
     Ret ret;
 };
 
+// newTVar :: a -> Free STMAlgebra (TVar a)
+template <typename T>
+Free<FreeC, NewTVar<T, fp::Unit>, fp::Unit>
+    newTVar(const T& val)
+{
+    auto f = Free<FreeC, NewTVar<T, fp::Unit>, fp::Unit>();
+    f.method.val  = val;
+    f.method.next = fp::unit;
+    return f;
+}
+
 // writeTVar :: TVar a -> a -> Free STMAlgebra Unit
 template <typename T>
 Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>
     writeTVar(const TVar<T>& tvar, const T& val)
 {
-    auto m = WriteTVar<T, fp::Unit>();
-    m.tvar = tvar;
-    m.val  = val;
-    m.next = fp::unit;
-
     auto f = Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>();
-    f.method = f;
+    f.method.tvar = tvar;
+    f.method.val  = val;
+    f.method.next = fp::unit;
     return f;
 }
 
@@ -67,12 +82,8 @@ template <typename T>
 Free<FreeC, ReadTVar<T, fp::Unit>, fp::Unit>
     readTVar(const TVar<T>& tvar)
 {
-    auto m = ReadTVar<T, fp::Unit>();
-    m.tvar = tvar;
-    m.next = fp::unit;
-
     auto f = Free<FreeC, ReadTVar<T, fp::Unit>, fp::Unit>();
-    f.method = f;
+    f.method.tvar = tvar;
     return f;
 }
 
