@@ -39,16 +39,16 @@ STMTest::STMTest()
 //    return a4.amber;
 //};
 
-const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
-    [](const stm::TVar<Fork>& tFork)
-{
-    auto fork = stm::readTVar(tFork);
-    auto r2   = stm::bind(
-                    r1,
-                    [](const Fork& fork) { return stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
-                );
-    return fp::unit;
-};
+//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    auto fork = stm::readTVar(tFork);
+//    auto r2   = stm::bind(
+//                    r1,
+//                    [](const Fork& fork) { return stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
+//                );
+//    return fp::unit;
+//};
 
 //const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
 //    [](const stm::TVar<Fork>& tFork)
@@ -73,10 +73,10 @@ const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
 
 void STMTest::stmTest()
 {
-    auto fork1 = stm::newTVarIO<Fork>();
+//    auto fork1 = stm::newTVarIO<Fork>();
 
-    stm::atomically(takeFork(fork1));
-    stm::atomically(takeFork(fork1));
+//    stm::atomically(takeFork(fork1));
+//    stm::atomically(takeFork(fork1));
 }
 
 QTEST_APPLESS_MAIN(STMTest)

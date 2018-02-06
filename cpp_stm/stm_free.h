@@ -7,7 +7,7 @@
 #include <identity.h>
 
 #include "tvar.h"
-#include "stm_free_stack.h"
+//#include "stm_free_stack.h"
 
 namespace stm
 {
@@ -27,22 +27,67 @@ struct WriteTVar
     Next next;
 };
 
-STMFree readTVar(const T& tvar)
+
+//template <typename Pure>
+//struct STMPure<Pure>
+//{
+//    Pure val;
+//};
+
+
+//template <typename T>
+//STMFree
+//    pure(const T& val)
+//{
+//    return STMFree<T>(val);
+//}
+
+
+//// readTVar :: TVar a -> STMFree a
+//template <typename T>
+//STMFree
+//    readTVar(const TVar<T>& tvar)
+//{
+//    auto m = ReadTVar<T, fp::Identity>();
+//    m.tvar = tvar;
+//    m.next = ???;
+//    return m;
+//}
+
+
+struct FreeC
 {
-    auto m = ReadTVar<T, Unit>();
-    m.tvar = tvar;
-    return m;
-}
+};
 
+struct PureC
+{
+};
 
+template <typename FreeC, typename AlgebraMethod, typename Ret>
+struct Free
+{
+    AlgebraMethod method;
+};
+
+template <typename PureC, typename AlgebraMethod, typename Ret>
+struct Free
+{
+    Ret ret;
+};
+
+// writeTVar :: TVar a -> a -> Free STMAlgebra Unit
 template <typename T>
-STMFree
+Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>
     writeTVar(const TVar<T>& tvar, const T& val)
 {
-    auto m = WriteTVar<T>();
+    auto m = WriteTVar<T, fp::Unit>();
     m.tvar = tvar;
     m.val  = val;
-    return m;
+    m.next = fp::unit;
+
+    auto f = Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>();
+    f.method = f;
+    return f;
 }
 
 

@@ -12,11 +12,11 @@ struct TVar
 
 };
 
-template <typename T>
-    readTVar<T>(const T& tvar)
-    {
+//template <typename T>
+//    readTVar<T>(const T& tvar)
+//    {
 
-    }
+//    }
 
 } // namespace stm
 

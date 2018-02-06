@@ -4,12 +4,6 @@
 namespace stm
 {
 
-template <typename T>
-struct TVar
-{
-
-};
-
 
 } // namespace stm
 
