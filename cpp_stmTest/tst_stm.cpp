@@ -21,6 +21,7 @@ private Q_SLOTS:
 
     void stmTest();
     void stmFreeTest();
+    void stmUnFreeTest();
 };
 
 STMTest::STMTest()
@@ -50,8 +51,15 @@ void STMTest::stmTest()
 
 void STMTest::stmFreeTest()
 {
-    auto r1 = stm::newTVar(10);
-    auto r2 = stm::bindFree(r1, stm::readTVar);
+//    auto freeR1 = stm::newTVar(10);
+//    auto freeR2 = stm::bindFree(freeR1, [](auto val){ return stm::pureFree(val); } );
+}
+
+void STMTest::stmUnFreeTest()
+{
+    auto freeR1 = stm::pureFree(10);
+    auto val    = stm::unFree(freeR1);
+    QVERIFY(val == 10);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
