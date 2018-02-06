@@ -57,9 +57,14 @@ void STMTest::stmFreeTest()
 
 void STMTest::stmUnFreeTest()
 {
-    auto freeR1 = stm::pureFree(10);
-    auto val    = stm::unFree(freeR1);
-    QVERIFY(val == 10);
+    auto freeVal     = stm::pureFree(10);
+    auto freeFreeVal = stm::pureFree(freeVal);
+
+    auto val1 = stm::unFree(freeVal);
+    auto val2 = stm::unFree(stm::unFree(freeFreeVal));
+
+    QVERIFY(val1 == 10);
+    QVERIFY(val2 == 10);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
