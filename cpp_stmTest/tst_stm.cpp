@@ -51,6 +51,7 @@ void STMTest::stmTest()
 void STMTest::stmFreeTest()
 {
     auto r1 = stm::newTVar(10);
+    auto r2 = stm::bindFree(r1, stm::readTVar);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
