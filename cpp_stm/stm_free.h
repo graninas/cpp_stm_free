@@ -27,41 +27,8 @@ struct WriteTVar
     Next next;
 };
 
-
-//template <typename Pure>
-//struct STMPure<Pure>
-//{
-//    Pure val;
-//};
-
-
-//template <typename T>
-//STMFree
-//    pure(const T& val)
-//{
-//    return STMFree<T>(val);
-//}
-
-
-//// readTVar :: TVar a -> STMFree a
-//template <typename T>
-//STMFree
-//    readTVar(const TVar<T>& tvar)
-//{
-//    auto m = ReadTVar<T, fp::Identity>();
-//    m.tvar = tvar;
-//    m.next = ???;
-//    return m;
-//}
-
-
-struct FreeC
-{
-};
-
-struct PureC
-{
-};
+struct FreeC {};
+struct PureC {};
 
 template <typename FreeMethod, typename AlgebraMethod, typename Ret>
 struct Free
@@ -95,7 +62,7 @@ Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>
     return f;
 }
 
-// readTVar :: TVar a -> a -> Free STMAlgebra a
+// readTVar :: TVar a -> Free STMAlgebra a
 template <typename T>
 Free<FreeC, ReadTVar<T, fp::Unit>, fp::Unit>
     readTVar(const TVar<T>& tvar)
