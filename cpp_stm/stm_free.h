@@ -3,22 +3,11 @@
 
 #include <functional>
 
-//#include <unit.h>
+#include <unit.h>
 #include <identity.h>
 
 #include "tvar.h"
 //#include "stm_free_stack.h"
-
-namespace fp
-{
-struct Unit
-{
-
-};
-
-const Unit unit;
-
-}
 
 namespace stm
 {
@@ -74,14 +63,19 @@ struct PureC
 {
 };
 
-template <typename FreeC, typename AlgebraMethod, typename Ret>
+template <typename FreeMethod, typename AlgebraMethod, typename Ret>
 struct Free
+{
+};
+
+template <typename AlgebraMethod, typename Ret>
+struct Free<FreeC, AlgebraMethod, Ret>
 {
     AlgebraMethod method;
 };
 
-template <typename PureC, typename AlgebraMethod, typename Ret>
-struct Free
+template <typename AlgebraMethod, typename Ret>
+struct Free<PureC, AlgebraMethod, Ret>
 {
     Ret ret;
 };
@@ -101,6 +95,19 @@ Free<FreeC, WriteTVar<T, fp::Unit>, fp::Unit>
     return f;
 }
 
+// readTVar :: TVar a -> a -> Free STMAlgebra a
+template <typename T>
+Free<FreeC, ReadTVar<T, fp::Unit>, fp::Unit>
+    readTVar(const TVar<T>& tvar)
+{
+    auto m = ReadTVar<T, fp::Unit>();
+    m.tvar = tvar;
+    m.next = fp::unit;
+
+    auto f = Free<FreeC, ReadTVar<T, fp::Unit>, fp::Unit>();
+    f.method = f;
+    return f;
+}
 
 } // namespace stm
 

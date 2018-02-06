@@ -6,6 +6,8 @@
 #include "common.h"
 #include "fork.h"
 
+#include "stm_free.h"
+
 using namespace sample;
 
 class STMTest : public QObject
@@ -41,53 +43,93 @@ STMTest::STMTest()
 
 typedef stm::TVar<Fork> TFork;
 
-const std::function<void(TFork, Fork)> setTaken =
-  [&](const TFork& tFork, const Fork& fork)
-  {
-    stm::writeTVar(tFork, {fork.name, ForkState::Taken});
-  };
+//const std::function<void(TFork, Fork)> setTaken =
+//    [&](const TFork& tFork, const Fork& fork)
+//    {
+//        stm::writeTVar(tFork, {fork.name, ForkState::Taken});
+//    };
 
 
-// https://gist.github.com/dpwright/6474401
+//// https://gist.github.com/dpwright/6474401
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    return stm::readTVar(tFork)                                     >>= [&] (auto fork) {
+//    return stm::writeTVar(tFork, Fork(fork.name, ForkState::Free));     };
+//};
 
-const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
-    [](const stm::TVar<Fork>& tFork)
-{
-    stm::readTVar(tFork)                >>=
+//#define SWITCH(var, cases) \
+//    switch (var) \
+//    { \
+//        cases \
+//    }
 
-       [](auto fork) {
-            DO(setTaken(tFork, fork),
-               RETURN(unit)
-               )
-            )
-       };
-};
+//#define CASE(pattern, act) \
+//    case pattern: \
+//        return act;
 
-//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    return stm::readTVar(tFork)                                   >>= [&] (auto fork) {
+//           SWITCH (fork.state,
+//               (
+//                   CASE(ForkState::Taken, stm::writeTVar(tFork, Fork(fork.name, ForkState::Free)))
+//                   CASE(ForkState::Free,  fp::unit)
+//               );
+//           )
+//    };
+//};
+
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    act_cont:
+//    act
+
+//    DO(act, accept_cont) ->
+
+//    act >>= (
+//        accept_cont
+//    )
+
+//    accept_cont:
+//    WITH(var, act_cont) ->
+
+//    [](auto const& var) {
+//        act_cont
+//    }
+
+
+
+//    DO(stm::readTVar(tFork),
+//       WITH(fork,
+//            setTaken(tFork, fork);
+//            )
+//       );
+//};
+
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
 //    [](const stm::TVar<Fork>& tFork)
 //{
 //    return
 //        DO(stm::readTVar(tFork),
 //           WITH(fork,
 //                DO(setTaken(tFork, fork),
-//                   RETURN(unit)
+//                   RETURN(fp::unit)
 //                   )
 //                )
 //           );
 //};
 
-//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
 //    [](const stm::TVar<Fork>& tFork)
 //{
 //    auto fork = stm::readTVar(tFork);
-//    auto r2   = stm::bind(
-//                    r1,
-//                    [](const Fork& fork) { return stm::writeTVar(tFork, {fork.name, ForkState::Taken}); }
-//                );
-//    return fp::unit;
+//    return      stm::bind(r1, setTaken);
 //};
 
-//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//const std::function<stm::STM<fp::Unit>(stm::TVar<Fork>)> takeFork =
 //    [](const stm::TVar<Fork>& tFork)
 //{
 //    return
