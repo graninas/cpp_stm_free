@@ -70,7 +70,13 @@ Free<FreeC, NewTVar<T, T>, fp::Unit>
 {
     auto f = Free<FreeC, NewTVar<T, T>, fp::Unit>();
     f.method.val  = val;
-    f.method.next = fp::id;
+    f.method.next = [](const T& ret) { return pureFree(ret); };
+//    f.method.next = [](const T& ret)
+//        {
+//            auto ff = Free<PureC, NewTVar<T, T>, T>();
+//            ff.ret = ret;
+//            return ff;
+//        };
     return f;
 }
 
