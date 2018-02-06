@@ -3,11 +3,22 @@
 
 #include <functional>
 
-#include <unit.h>
+//#include <unit.h>
 #include <identity.h>
 
 #include "tvar.h"
 //#include "stm_free_stack.h"
+
+namespace fp
+{
+struct Unit
+{
+
+};
+
+const Unit unit;
+
+}
 
 namespace stm
 {

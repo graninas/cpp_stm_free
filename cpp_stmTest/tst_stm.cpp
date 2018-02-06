@@ -39,6 +39,43 @@ STMTest::STMTest()
 //    return a4.amber;
 //};
 
+typedef stm::TVar<Fork> TFork;
+
+const std::function<void(TFork, Fork)> setTaken =
+  [&](const TFork& tFork, const Fork& fork)
+  {
+    stm::writeTVar(tFork, {fork.name, ForkState::Taken});
+  };
+
+
+// https://gist.github.com/dpwright/6474401
+
+const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+    [](const stm::TVar<Fork>& tFork)
+{
+    stm::readTVar(tFork)                >>=
+
+       [](auto fork) {
+            DO(setTaken(tFork, fork),
+               RETURN(unit)
+               )
+            )
+       };
+};
+
+//const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
+//    [](const stm::TVar<Fork>& tFork)
+//{
+//    return
+//        DO(stm::readTVar(tFork),
+//           WITH(fork,
+//                DO(setTaken(tFork, fork),
+//                   RETURN(unit)
+//                   )
+//                )
+//           );
+//};
+
 //const std::function<stm::STM<Unit>(stm::TVar<Fork>)> takeFork =
 //    [](const stm::TVar<Fork>& tFork)
 //{
