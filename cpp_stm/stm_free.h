@@ -46,23 +46,22 @@ struct Free
     AlgebraMethod method;
 };
 
-template <typename Ret>
-Free<Pure<Ret, fp::Unit>, Ret>
-    pureFree(const Ret& ret)
-    {
-        auto f = Free<Pure<Ret, fp::Unit>, Ret>();
-        f.method.ret = ret;
-        return f;
-    }
+#define FreePureT Free<Pure<T, fp::Unit>, T>
+
+template <typename T>
+FreePureT pureFree(const T& ret)
+{
+    auto f = FreePureT();
+    f.method.ret = ret;
+    return f;
+}
 
 // newTVar :: a -> Free STMAlgebra (TVar a)
 template <typename T>
-Free<NewTVar<T,
-             Free<Pure<T, fp::Unit>, T>>,
-    fp::Unit>
+Free<NewTVar<T, FreePureT>, fp::Unit>
     newTVar(const T& val)
 {
-    auto f = Free<NewTVar<T, Free<Pure<T, fp::Unit>, T>>, fp::Unit>();
+    auto f = Free<NewTVar<T, FreePureT>, fp::Unit>();
     f.method.val  = val;
 //    f.method.next = [](const T& ret) { return pureFree(ret); };
     f.method.next = [](auto ret) { return pureFree(ret); };
@@ -95,27 +94,27 @@ Free<ReadTVar<T, fp::Unit>, fp::Unit>
 
 
 template <typename T>
-T unFree(const Free<Pure<T, fp::Unit>, T>& pureVal)
+T unFree(const FreePureT& pureVal)
 {
     return pureVal.method.ret;
 }
 
-
 // bind :: m a -> (a -> m b) -> m b
-template <typename T, typename Method, typename Ret>
-void
-    bindFree(const Free<Pure<T, fp::Unit>, T>& pureVal,
-//             const std::function<
-//                Free<Method, Ret>
-//                (T)>& cont
-             const std::function<T(T)>& dummy
-             )
+template <typename T>
+FreePureT bindFree(const FreePureT& pureVal,
+                   const std::function<FreePureT(T)>& f)
 {
     auto val = pureVal.method.ret;
-    auto result = dummy(val);
+    return f(val);
 }
 
-
+template <typename T>
+FreePureT bindFree(const FreePureT& pureVal,
+                   const std::function<FreePureT(T)>& f)
+{
+    auto val = pureVal.method.ret;
+    return f(val);
+}
 
 } // namespace stm
 

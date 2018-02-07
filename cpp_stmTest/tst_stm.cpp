@@ -20,7 +20,8 @@ public:
 private Q_SLOTS:
 
     void stmTest();
-    void stmFreeTest();
+    void stmBindPureTest();
+    void stmBindFreeTest();
     void stmUnFreeTest();
 };
 
@@ -49,10 +50,28 @@ void STMTest::stmTest()
 //    stm::atomically(takeFork(fork1));
 }
 
-void STMTest::stmFreeTest()
+
+void STMTest::stmBindPureTest()
 {
-//    auto freeR1 = stm::newTVar(10);
-//    auto freeR2 = stm::bindFree(freeR1, [](auto val){ return stm::pureFree(val); } );
+    std::function<stm::Free<stm::Pure<int, fp::Unit>, int>(int)>
+        f = [](int val){ return stm::pureFree(val + 10); };
+    auto freeR1 = stm::pureFree(10);
+    auto freeR2 = stm::bindFree(freeR1, f);
+    auto result = stm::unFree(freeR2);
+    QVERIFY(result == 20);
+}
+
+void STMTest::stmBindFreeTest()
+{
+    std::function<
+            stm::Free<stm::NewTVar<int,
+                                  stm::Free<stm::Pure<int, fp::Unit>, int>
+                                  >,
+                      fp::Unit>
+            (int)>
+        f = [](int val){ return stm::newTVar(val); };
+    auto freeR1 = stm::pureFree(10);
+    auto freeR2 = stm::bindFree(freeR1, f);
 }
 
 void STMTest::stmUnFreeTest()
