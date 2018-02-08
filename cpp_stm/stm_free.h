@@ -114,7 +114,7 @@ Free<NewTVar<T, Next>>
 {
     auto f = Free<NewTVar<T, Next>>();
     f.method.val  = val;
-    f.method.next = [](const Next& x) { return x; };
+    f.method.next = fp::id;
     return f;
 }
 
@@ -132,11 +132,11 @@ Free<WriteTVar<T, fp::Unit>>
 
 // readTVar :: TVar a -> Free STMAlgebra a
 // Wrong type (see newTVar)
-template <typename T>
-Free<ReadTVar<T, fp::Unit>>
+template <typename T, typename Next>
+Free<ReadTVar<T, Next>>
     readTVar(const TVar<T>& tvar)
 {
-    auto f = Free<ReadTVar<T, fp::Unit>>();
+    auto f = Free<ReadTVar<T, Next>>();
     f.method.tvar = tvar;
     f.method.next = fp::id;
     return f;
