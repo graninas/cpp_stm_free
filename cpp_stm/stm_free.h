@@ -135,10 +135,13 @@ FreePureT bindFree(const FreePureT& pureVal,
     return f(val);
 }
 
-template <typename T, template<typename, typename> class Method, typename Ret1>
-Free<Method<T, Ret1>>
-    mapFree(const Free<Method<T, Ret1>>& m,
-            const std::function<int(int)>& f)
+template < typename T1
+         , typename T2
+         , typename Next
+         , template<typename, typename> class Method>
+Free<Method<T2, Next>>
+    mapFree(const Free<Method<T1, Next>>& m,
+            const std::function<T2(T1)>& f)
 {
     return m.method.map(f);
 }
