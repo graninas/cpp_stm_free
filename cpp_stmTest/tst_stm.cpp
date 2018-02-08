@@ -20,6 +20,8 @@ public:
 private Q_SLOTS:
 
     void stmTest();
+    void stmMapFreeTest();
+    void stmPassFreeTest();
     void stmBindPureTest();
     void stmBindFreeTest();
     void stmUnFreeTest();
@@ -61,17 +63,45 @@ void STMTest::stmBindPureTest()
     QVERIFY(result == 20);
 }
 
+void STMTest::stmMapFreeTest()
+{
+    auto freeR1 = stm::pureFree(10);
+    auto freeR2 = stm::mapFree(freeR1, [](int x) { return x + 20; });
+    auto result = stm::unFree(freeR2);
+    QVERIFY(result == 30);
+}
+
+void STMTest::stmPassFreeTest()
+{
+//    std::function<
+//            stm::Free<stm::NewTVar<int,
+//                                  stm::Free<stm::Pure<int, fp::Unit>, int>
+//                                  >,
+//                      fp::Unit>
+//            (int)>
+//        f = [](int val){ return stm::newTVar(val); };
+
+//    auto freeR1 = stm::pureFree(10);
+//    auto freeR2 = stm::bindFree(freeR1, f);
+
+    auto freeR1 = stm::pureFree(10);
+    stm::passFree(freeR1);
+}
+
 void STMTest::stmBindFreeTest()
 {
-    std::function<
-            stm::Free<stm::NewTVar<int,
-                                  stm::Free<stm::Pure<int, fp::Unit>, int>
-                                  >,
-                      fp::Unit>
-            (int)>
-        f = [](int val){ return stm::newTVar(val); };
-    auto freeR1 = stm::pureFree(10);
-    auto freeR2 = stm::bindFree(freeR1, f);
+//    std::function<
+//            stm::Free<stm::NewTVar<int,
+//                                  stm::Free<stm::Pure<int, fp::Unit>, int>
+//                                  >,
+//                      fp::Unit>
+//            (int)>
+//        f = [](int val){ return stm::newTVar(val); };
+
+//    auto freeR1 = stm::pureFree(10);
+//    auto freeR2 = stm::bindFree(freeR1, f);
+
+    QVERIFY(false);
 }
 
 void STMTest::stmUnFreeTest()

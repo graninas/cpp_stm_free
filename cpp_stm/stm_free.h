@@ -12,6 +12,21 @@
 namespace stm
 {
 
+#define FreePureT Free<Pure<T, fp::Unit>, T>
+#define Fun(FromT, ToT) std::function<ToT(FromT)>
+
+// forward declarations
+template <typename AlgebraMethod, typename Ret>
+struct Free;
+
+template <typename T, typename Next>
+struct Pure;
+
+template <typename T>
+FreePureT pureFree(const T& ret);
+
+// STM Free
+
 template <typename T, typename Next>
 struct NewTVar
 {
@@ -38,6 +53,13 @@ template <typename T, typename Next>
 struct Pure
 {
     T ret;
+
+    template<typename ToType>
+    Free<Pure<ToType, fp::Unit>, ToType>
+        map(const Fun(T, ToType)& f) const
+        {
+            return pureFree(f(ret));
+        }
 };
 
 template <typename AlgebraMethod, typename Ret>
@@ -45,8 +67,6 @@ struct Free
 {
     AlgebraMethod method;
 };
-
-#define FreePureT Free<Pure<T, fp::Unit>, T>
 
 template <typename T>
 FreePureT pureFree(const T& ret)
@@ -108,14 +128,22 @@ FreePureT bindFree(const FreePureT& pureVal,
     return f(val);
 }
 
-template <typename T>
-FreePureT bindFree(const FreePureT& pureVal,
-                   const std::function<FreePureT(T)>& f)
+template <typename T, template<typename, typename> class Method, typename Ret1, typename Ret2>
+Free<Method<T, Ret1>, int>
+    mapFree(const Free<Method<T, Ret1>, Ret2>& m,
+            const std::function<int(int)>& f)
 {
-    auto val = pureVal.method.ret;
-    return f(val);
+    return m.method.map(f);
 }
+
+// for test
+template <typename T, template<typename, typename> class Method, typename Ret1, typename Ret2>
+void passFree(const Free<Method<T, Ret1>, Ret2>&)
+{
+}
+
 
 } // namespace stm
 
 #endif // STM_FREE_H
+
