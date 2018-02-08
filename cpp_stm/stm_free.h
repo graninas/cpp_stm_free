@@ -33,7 +33,17 @@ struct NewTVar
     using Cont = Next;
 
     T val;
-    std::function<Next(T)> next;
+    std::function<Next(TVar<T>)> next;
+
+//    template<typename ToType>
+//    Free<NewTVar<ToType, Next>>
+//        map(const Fun(T, ToType)& f) const
+//        {
+//            Free<NewTVar<ToType, Next>> fmapped;
+//            fmapped.method.val  = f(val);
+//            fmapped.method.next = next;
+//            return fmapped;
+//        }
 };
 
 template <typename T, typename Next>
@@ -57,7 +67,7 @@ struct WriteTVar
 
 template <typename T, typename Next>
 struct Pure
-{
+{  
     using Cont = Next;
 
     T ret;
@@ -68,12 +78,25 @@ struct Pure
         {
             return pureFree(f(ret));
         }
+
+//    Pure<T, Next>& operator= (const Pure<T, Next>& other)
+//        {
+//            ret = other.ret;
+//            return *this;
+//        }
 };
 
 template <typename AlgebraMethod>
 struct Free
 {
     AlgebraMethod method;
+
+//    Free<AlgebraMethod>& operator= (const Free<AlgebraMethod>& other)
+//        {
+//            method = other.method;
+//            return *this;
+//        }
+
 };
 
 template <typename T>
@@ -85,13 +108,13 @@ FreePureT pureFree(const T& ret)
 }
 
 // newTVar :: a -> Free STMAlgebra (TVar a)
-template <typename T>
-Free<NewTVar<T, FreePureT>>
+template <typename T, typename Next>
+Free<NewTVar<T, Next>>
     newTVar(const T& val)
 {
-    auto f = Free<NewTVar<T, FreePureT>>();
+    auto f = Free<NewTVar<T, Next>>();
     f.method.val  = val;
-    f.method.next = [](const T& ret) { return pureFree(ret); };
+    f.method.next = [](const Next& x) { return x; };
     return f;
 }
 

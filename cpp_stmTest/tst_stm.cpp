@@ -66,6 +66,7 @@ void STMTest::stmBindPureTest()
 
 void STMTest::stmMapPureFreeTest()
 {
+    // Type deducing doesn't work on lambdas
     std::function<int(int)>         f1 = [](int x) { return x + 20; };
     std::function<std::string(int)> f2 = [](int)   { return "abc";  };
 
@@ -81,9 +82,13 @@ void STMTest::stmMapPureFreeTest()
 
 void STMTest::stmMapNewTVarFreeTest()
 {
-//    auto freeR1 = stm::newTVar(10);
-//    auto freeR2 = stm::mapFree(freeR1, [](int x) { return x + 20; });
-//    auto freeR3 = stm::mapFree(freeR2, [](int x) { return x - 10; });
+    std::function<int(int)>         f1 = [](int x) { return x + 20; };
+    std::function<std::string(int)> f2 = [](int)   { return "abc";  };
+
+//    stm::Free<stm::NewTVar<int, stm::TVar<int>>>
+    auto freeR1 = stm::newTVar<int, stm::TVar<int>>(10);
+//    auto freeR2 = stm::mapFree(freeR1, f1);
+//    auto freeR3 = stm::mapFree(freeR2, f2);
 
 //    auto result1 = stm::unFree(freeR2);
 //    auto result2 = stm::unFree(freeR3);
