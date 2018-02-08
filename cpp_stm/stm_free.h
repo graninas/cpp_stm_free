@@ -12,11 +12,11 @@
 namespace stm
 {
 
-#define FreePureT Free<Pure<T, fp::Unit>, T>
+#define FreePureT Free<Pure<T, fp::Unit>>
 #define Fun(FromT, ToT) std::function<ToT(FromT)>
 
 // forward declarations
-template <typename AlgebraMethod, typename Ret>
+template <typename AlgebraMethod>
 struct Free;
 
 template <typename T, typename Next>
@@ -30,6 +30,8 @@ FreePureT pureFree(const T& ret);
 template <typename T, typename Next>
 struct NewTVar
 {
+    using Cont = Next;
+
     T val;
     std::function<Next(T)> next;
 };
@@ -37,6 +39,8 @@ struct NewTVar
 template <typename T, typename Next>
 struct ReadTVar
 {
+    using Cont = Next;
+
     TVar<T> tvar;
     std::function<Next(T)> next;
 };
@@ -44,6 +48,8 @@ struct ReadTVar
 template <typename T, typename Next>
 struct WriteTVar
 {
+    using Cont = Next;
+
     TVar<T> tvar;
     T val;
     Next next;
@@ -52,17 +58,19 @@ struct WriteTVar
 template <typename T, typename Next>
 struct Pure
 {
+    using Cont = Next;
+
     T ret;
 
     template<typename ToType>
-    Free<Pure<ToType, fp::Unit>, ToType>
+    Free<Pure<ToType, fp::Unit>>
         map(const Fun(T, ToType)& f) const
         {
             return pureFree(f(ret));
         }
 };
 
-template <typename AlgebraMethod, typename Ret>
+template <typename AlgebraMethod>
 struct Free
 {
     AlgebraMethod method;
@@ -78,22 +86,21 @@ FreePureT pureFree(const T& ret)
 
 // newTVar :: a -> Free STMAlgebra (TVar a)
 template <typename T>
-Free<NewTVar<T, FreePureT>, fp::Unit>
+Free<NewTVar<T, FreePureT>>
     newTVar(const T& val)
 {
-    auto f = Free<NewTVar<T, FreePureT>, fp::Unit>();
+    auto f = Free<NewTVar<T, FreePureT>>();
     f.method.val  = val;
-//    f.method.next = [](const T& ret) { return pureFree(ret); };
-    f.method.next = [](auto ret) { return pureFree(ret); };
+    f.method.next = [](const T& ret) { return pureFree(ret); };
     return f;
 }
 
 // writeTVar :: TVar a -> a -> Free STMAlgebra Unit
 template <typename T>
-Free<WriteTVar<T, fp::Unit>, fp::Unit>
+Free<WriteTVar<T, fp::Unit>>
     writeTVar(const TVar<T>& tvar, const T& val)
 {
-    auto f = Free<WriteTVar<T, fp::Unit>, fp::Unit>();
+    auto f = Free<WriteTVar<T, fp::Unit>>();
     f.method.tvar = tvar;
     f.method.val  = val;
     f.method.next = fp::unit;
@@ -103,10 +110,10 @@ Free<WriteTVar<T, fp::Unit>, fp::Unit>
 // readTVar :: TVar a -> Free STMAlgebra a
 // Wrong type (see newTVar)
 template <typename T>
-Free<ReadTVar<T, fp::Unit>, fp::Unit>
+Free<ReadTVar<T, fp::Unit>>
     readTVar(const TVar<T>& tvar)
 {
-    auto f = Free<ReadTVar<T, fp::Unit>, fp::Unit>();
+    auto f = Free<ReadTVar<T, fp::Unit>>();
     f.method.tvar = tvar;
     f.method.next = fp::id;
     return f;
@@ -128,17 +135,17 @@ FreePureT bindFree(const FreePureT& pureVal,
     return f(val);
 }
 
-template <typename T, template<typename, typename> class Method, typename Ret1, typename Ret2>
-Free<Method<T, Ret1>, int>
-    mapFree(const Free<Method<T, Ret1>, Ret2>& m,
+template <typename T, template<typename, typename> class Method, typename Ret1>
+Free<Method<T, Ret1>>
+    mapFree(const Free<Method<T, Ret1>>& m,
             const std::function<int(int)>& f)
 {
     return m.method.map(f);
 }
 
 // for test
-template <typename T, template<typename, typename> class Method, typename Ret1, typename Ret2>
-void passFree(const Free<Method<T, Ret1>, Ret2>&)
+template <typename T, template<typename, typename> class Method, typename Ret1>
+void passFree(const Free<Method<T, Ret1>>&)
 {
 }
 

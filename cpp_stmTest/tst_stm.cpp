@@ -55,7 +55,7 @@ void STMTest::stmTest()
 
 void STMTest::stmBindPureTest()
 {
-    std::function<stm::Free<stm::Pure<int, fp::Unit>, int>(int)>
+    std::function<stm::Free<stm::Pure<int, fp::Unit>>(int)>
         f = [](int val){ return stm::pureFree(val + 10); };
     auto freeR1 = stm::pureFree(10);
     auto freeR2 = stm::bindFree(freeR1, f);
