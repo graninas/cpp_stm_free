@@ -71,8 +71,8 @@ void STMTest::stmMapPureFreeTest()
     std::function<std::string(int)> f2 = [](int)   { return "abc";  };
 
     auto freeR1 = stm::pureFree(10);
-    auto freeR2 = stm::mapFree(freeR1, f1);
-    auto freeR3 = stm::mapFree(freeR2, f2);
+    auto freeR2 = stm::mapFree(f1, freeR1);
+    auto freeR3 = stm::mapFree(f2, freeR2);
 
     auto result1 = stm::unFree(freeR2);
     auto result2 = stm::unFree(freeR3);
@@ -85,10 +85,9 @@ void STMTest::stmMapNewTVarFreeTest()
     std::function<int(int)>         f1 = [](int x) { return x + 20; };
     std::function<std::string(int)> f2 = [](int)   { return "abc";  };
 
-//    stm::Free<stm::NewTVar<int, stm::TVar<int>>>
-    auto freeR1 = stm::newTVar<int, stm::TVar<int>>(10);
-//    auto freeR2 = stm::mapFree(freeR1, f1);
-//    auto freeR3 = stm::mapFree(freeR2, f2);
+    stm::Free<stm::NewTVar<int, stm::TVar<int>>> freeR1 = stm::newTVar<int, stm::TVar<int>>(10);
+//    auto freeR2 = stm::mapFree(f1, freeR1);
+//    auto freeR3 = stm::mapFree(f2, freeR2);
 
 //    auto result1 = stm::unFree(freeR2);
 //    auto result2 = stm::unFree(freeR3);
