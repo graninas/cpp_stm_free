@@ -23,7 +23,8 @@ HEADERS += \
     tvar.h \
     bind.h \
     stm_free_stack.h \
-    stm_free.h
+    stm_free.h \
+    free.h
 
 unix {
     target.path = /usr/lib

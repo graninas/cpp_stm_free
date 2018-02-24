@@ -3,9 +3,12 @@
 
 #include <functional>
 #include <any>
+#include <variant>
 
 #include <unit.h>
 #include <identity.h>
+
+#include "free.h"
 
 #include "tvar.h"
 //#include "stm_free_stack.h"
@@ -13,32 +16,25 @@
 namespace stm
 {
 
-#define FreePureT Free<Pure<T, fp::Unit>>
-#define Fun(FromT, ToT) std::function<ToT(FromT)>
-
-// forward declarations
-template <typename AlgebraMethod>
-struct Free;
+// STM Free
 
 template <typename T, typename Next>
-struct Pure;
+struct NewTVarT
+{
+    using Cont = Next;
 
-template <typename T>
-FreePureT pureFree(const T& ret);
-
-// STM Free
+    T val;
+    std::function<Next(TVar<T>)> next;
+};
 
 template <typename Next>
 struct NewTVar
 {
-    using Cont = Next;
-
-    std::any val;
-    std::function<Next(TVar<T>)> next;
+    using Method = NewTVarT<std::any, Next>;
 };
 
 template <typename T, typename Next>
-struct ReadTVar
+struct ReadTVarT
 {
     using Cont = Next;
 
@@ -46,8 +42,14 @@ struct ReadTVar
     std::function<Next(T)> next;
 };
 
+template <typename Next>
+struct ReadTVar
+{
+    using Method = ReadTVarT<std::any, Next>;
+};
+
 template <typename T, typename Next>
-struct WriteTVar
+struct WriteTVarT
 {
     using Cont = Next;
 
@@ -56,38 +58,22 @@ struct WriteTVar
     Next next;
 };
 
-template <typename T, typename Next>
-struct Pure
-{  
-    using Cont = Next;
-
-    T ret;
-};
-
-template <typename AlgebraMethod>
-struct Free
+template <typename Next>
+struct WriteTVar
 {
-    AlgebraMethod method;
+    using Method = WriteTVarT<std::any, Next>;
 };
-
-template <typename T>
-FreePureT pureFree(const T& ret)
-{
-    auto f = FreePureT();
-    f.method.ret = ret;
-    return f;
-}
 
 // newTVar :: a -> Free STMAlgebra (TVar a)
-template <typename T, typename Next>
-Free<NewTVar<T, Next>>
-    newTVar(const T& val)
-{
-    auto f = Free<NewTVar<T, Next>>();
-    f.method.val  = val;
-    f.method.next = fp::id;
-    return f;
-}
+//template <typename T, typename Next>
+//Free<NewTVar<T, Next>>
+//    newTVar(const T& val)
+//{
+//    auto f = Free<NewTVar<T, Next>>();
+//    f.method.val  = val;
+//    f.method.next = fp::id;
+//    return f;
+//}
 
 /*
 data F a =
@@ -100,55 +86,55 @@ forInt i = Free (ForInt i return)
 
 
 // writeTVar :: TVar a -> a -> Free STMAlgebra Unit
-template <typename T>
-Free<WriteTVar<T, fp::Unit>>
-    writeTVar(const TVar<T>& tvar, const T& val)
-{
-    auto f = Free<WriteTVar<T, fp::Unit>>();
-    f.method.tvar = tvar;
-    f.method.val  = val;
-    f.method.next = fp::unit;
-    return f;
-}
+//template <typename T>
+//Free<WriteTVar<T, fp::Unit>>
+//    writeTVar(const TVar<T>& tvar, const T& val)
+//{
+//    auto f = Free<WriteTVar<T, fp::Unit>>();
+//    f.method.tvar = tvar;
+//    f.method.val  = val;
+//    f.method.next = fp::unit;
+//    return f;
+//}
 
 // readTVar :: TVar a -> Free STMAlgebra a
 // Wrong type (see newTVar)
-template <typename T, typename Next>
-Free<ReadTVar<T, Next>>
-    readTVar(const TVar<T>& tvar)
-{
-    auto f = Free<ReadTVar<T, Next>>();
-    f.method.tvar = tvar;
-    f.method.next = fp::id;
-    return f;
-}
+//template <typename T, typename Next>
+//Free<ReadTVar<T, Next>>
+//    readTVar(const TVar<T>& tvar)
+//{
+//    auto f = Free<ReadTVar<T, Next>>();
+//    f.method.tvar = tvar;
+//    f.method.next = fp::id;
+//    return f;
+//}
 
 
-template <typename T>
-T unFree(const FreePureT& pureVal)
-{
-    return pureVal.method.ret;
-}
+//template <typename T>
+//T unFree(const FreePureT& pureVal)
+//{
+//    return pureVal.method.ret;
+//}
 
-// bind :: m a -> (a -> m b) -> m b
-template <typename T>
-FreePureT bindFree(const FreePureT& pureVal,
-                   const std::function<FreePureT(T)>& f)
-{
-    auto val = pureVal.method.ret;
-    return f(val);
-}
+//// bind :: m a -> (a -> m b) -> m b
+//template <typename T>
+//FreePureT bindFree(const FreePureT& pureVal,
+//                   const std::function<FreePureT(T)>& f)
+//{
+//    auto val = pureVal.method.ret;
+//    return f(val);
+//}
 
-template < typename T
-         , typename Next1
-         , typename Next2
-         , template<typename, typename> class Method>
-Free<Method<T, Next2>>
-    mapFree(const std::function<Next2(Next1)>& f,
-            const Free<Method<T, Next1>>& m)
-{
-    return m.method.map(f);
-}
+//template < typename T
+//         , typename Next1
+//         , typename Next2
+//         , template<typename, typename> class Method>
+//Free<Method<T, Next2>>
+//    mapFree(const std::function<Next2(Next1)>& f,
+//            const Free<Method<T, Next1>>& m)
+//{
+//    return m.method.map(f);
+//}
 
 //template <typename T1, typename T2>
 //Free<Pure<T2, fp::Unit>>
@@ -159,10 +145,10 @@ Free<Method<T, Next2>>
 //}
 
 // for test
-template <typename T, template<typename, typename> class Method, typename Ret1>
-void passFree(const Free<Method<T, Ret1>>&)
-{
-}
+//template <typename T, template<typename, typename> class Method, typename Ret1>
+//void passFree(const Free<Method<T, Ret1>>&)
+//{
+//}
 
 
 } // namespace stm
