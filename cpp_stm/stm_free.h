@@ -2,6 +2,7 @@
 #define STM_FREE_H
 
 #include <functional>
+#include <any>
 
 #include <unit.h>
 #include <identity.h>
@@ -27,25 +28,13 @@ FreePureT pureFree(const T& ret);
 
 // STM Free
 
-template <typename T, typename Next>
+template <typename Next>
 struct NewTVar
 {
     using Cont = Next;
 
-    T val;
+    std::any val;
     std::function<Next(TVar<T>)> next;
-
-    template<typename Next2>
-    Free<NewTVar<T, Next2>>
-        map(const Fun(Next, Next2)& f) const
-        {
-            std::function<Next2(TVar<T>)> fmapped
-                    = [=](auto v) { return f(next(v)); };
-            Free<NewTVar<T, Next2>> r;
-            r.method.val  = val;
-            r.method.next = fmapped;
-            return r;
-        }
 };
 
 template <typename T, typename Next>
@@ -73,13 +62,6 @@ struct Pure
     using Cont = Next;
 
     T ret;
-
-    template<typename ToType>
-    Free<Pure<ToType, fp::Unit>>
-        map(const Fun(T, ToType)& f) const
-        {
-            return pureFree(f(ret));
-        }
 };
 
 template <typename AlgebraMethod>
