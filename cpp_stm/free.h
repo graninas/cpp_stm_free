@@ -2,48 +2,37 @@
 #define FREE_H
 
 #include <variant>
+#include <any>
 
 namespace fp
 {
 
-//#define FreePureT Free<Pure<T, fp::Unit>>
-//#define Fun(FromT, ToT) std::function<ToT(FromT)>
-
-// forward declarations, experiment
-template <typename Next>
-struct NewTVar;
-
-template <typename Next>
-struct ReadTVar;
-
-template <typename Next>
-struct WriteTVar;
-
-template <class Next>
-  using STMT = std::variant<NewTVar<Next>, ReadTVar<Next>, WriteTVar<Next>>;
-
-
-template <template <typename> class AlgebraMethod, typename Ret>
-struct Pure
+template <template <typename> class Algebra, typename Ret>
+struct PureF
 {
     Ret ret;
 };
 
-//data Free f a = Pure a | Free (f (Free f a))
+// Forward declaration
+template <template <typename> class Algebra, typename Ret>
+struct FreeF;
 
-template <template <typename> class AlgebraMethod, typename Ret>
+// Question: what to use: FreeT or Free?
+template <template <typename> class Algebra, typename Ret>
+    using FreeT = std::variant<PureF<Algebra, Ret>, FreeF<Algebra, Ret>>;
+
+template <template <typename> class Algebra, typename Ret>
 struct Free
 {
-    AlgebraMethod<Ret> method;
+    FreeT<Algebra, Ret> free;
 };
 
-//template <typename T>
-//FreePureT pureFree(const T& ret)
-//{
-//    auto f = FreePureT();
-//    f.method.ret = ret;
-//    return f;
-//}
+template <template <typename> class Algebra, typename Ret>
+struct FreeF
+{
+    Algebra<Free<Algebra, Ret>> method;
+};
+
 
 } // namespace fp
 

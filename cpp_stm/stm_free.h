@@ -19,136 +19,104 @@ namespace stm
 // STM Free
 
 template <typename T, typename Next>
-struct NewTVarT
+struct NewTVarC
 {
-    using Cont = Next;
-
     T val;
     std::function<Next(TVar<T>)> next;
 };
 
 template <typename Next>
-struct NewTVar
+struct NewTVarW
 {
-    using Method = NewTVarT<std::any, Next>;
+    using Method = NewTVarC<std::any, Next>;
+    Method method;
 };
 
 template <typename T, typename Next>
-struct ReadTVarT
+struct ReadTVarC
 {
-    using Cont = Next;
-
     TVar<T> tvar;
     std::function<Next(T)> next;
 };
 
 template <typename Next>
-struct ReadTVar
+struct ReadTVarW
 {
-    using Method = ReadTVarT<std::any, Next>;
+    using Method = ReadTVarC<std::any, Next>;
+    Method method;
 };
 
 template <typename T, typename Next>
-struct WriteTVarT
+struct WriteTVarC
 {
-    using Cont = Next;
-
     TVar<T> tvar;
     T val;
     Next next;
 };
 
 template <typename Next>
-struct WriteTVar
+struct WriteTVarW
 {
-    using Method = WriteTVarT<std::any, Next>;
+    using Method = WriteTVarC<std::any, Next>;
+    Method method;
 };
 
-// newTVar :: a -> Free STMAlgebra (TVar a)
-//template <typename T, typename Next>
-//Free<NewTVar<T, Next>>
-//    newTVar(const T& val)
-//{
-//    auto f = Free<NewTVar<T, Next>>();
-//    f.method.val  = val;
-//    f.method.next = fp::id;
-//    return f;
-//}
+template <class Next>
+  using STMF = std::variant<NewTVarW<Next>, ReadTVarW<Next>, WriteTVarW<Next>>;
 
-/*
-data F a =
-    ForInt Int (String -> a)
-
-forInt :: Int -> Free F String
-forInt i = Free (ForInt i return)
-
-    */
+template <class Next>
+    using STML = fp::FreeT<STMF, Next>;
 
 
-// writeTVar :: TVar a -> a -> Free STMAlgebra Unit
-//template <typename T>
-//Free<WriteTVar<T, fp::Unit>>
-//    writeTVar(const TVar<T>& tvar, const T& val)
-//{
-//    auto f = Free<WriteTVar<T, fp::Unit>>();
-//    f.method.tvar = tvar;
-//    f.method.val  = val;
-//    f.method.next = fp::unit;
-//    return f;
-//}
-
-// readTVar :: TVar a -> Free STMAlgebra a
-// Wrong type (see newTVar)
-//template <typename T, typename Next>
-//Free<ReadTVar<T, Next>>
-//    readTVar(const TVar<T>& tvar)
-//{
-//    auto f = Free<ReadTVar<T, Next>>();
-//    f.method.tvar = tvar;
-//    f.method.next = fp::id;
-//    return f;
-//}
+// newTVar :: a -> Free Algebra (TVar a)
+template <typename T>
+NewTVarC<T, TVar<T>>
+    newTVarC(const T& val)
+{
+    auto f = NewTVarC<T, TVar<T>>();
+    f.val = val;
+    f.next = fp::id;
+    return f;
+}
 
 
-//template <typename T>
-//T unFree(const FreePureT& pureVal)
-//{
-//    return pureVal.method.ret;
-//}
+// writeTVar :: TVar a -> a -> Free Algebra Unit
+template <typename T>
+WriteTVarC<T, fp::Unit>
+    writeTVarC(const TVar<T>& tvar, const T& val)
+{
+    auto f = WriteTVarC<T, fp::Unit>();
+    f.tvar = tvar;
+    f.val  = val;
+    f.next = fp::unit;
+    return f;
+}
 
-//// bind :: m a -> (a -> m b) -> m b
-//template <typename T>
-//FreePureT bindFree(const FreePureT& pureVal,
-//                   const std::function<FreePureT(T)>& f)
-//{
-//    auto val = pureVal.method.ret;
-//    return f(val);
-//}
+// readTVar :: TVar a -> Free f a
+template <typename T>
+ReadTVarC<T, T>
+    readTVarC(const TVar<T>& tvar)
+{
+    auto f = ReadTVarC<T, T>();
+    f.tvar = tvar;
+    f.next = fp::id;
+    return f;
+}
 
-//template < typename T
-//         , typename Next1
-//         , typename Next2
-//         , template<typename, typename> class Method>
-//Free<Method<T, Next2>>
-//    mapFree(const std::function<Next2(Next1)>& f,
-//            const Free<Method<T, Next1>>& m)
-//{
-//    return m.method.map(f);
-//}
+template <typename T, typename Next>
+NewTVarW<Next>
+    newTVarW(const T& val)
+{
+    NewTVarC<std::any, Next> newTVarAny;
+    newTVarAny.val = std::make_any(val);
 
-//template <typename T1, typename T2>
-//Free<Pure<T2, fp::Unit>>
-//    mapFree(const std::function<T2(T1)>& f,
-//            const Free<Pure<T1, fp::Unit>>& m)
-//{
-//    return m.method.map(f);
-//}
+    // std::function<Next(TVar<std::any>)>
+    newTVarAny.next = fp::id;
 
-// for test
-//template <typename T, template<typename, typename> class Method, typename Ret1>
-//void passFree(const Free<Method<T, Ret1>>&)
-//{
-//}
+    NewTVarW<Next> f;
+    f.method = newTVarAny;
+    return f;
+}
 
 
 } // namespace stm
