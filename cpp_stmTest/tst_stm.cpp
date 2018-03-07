@@ -90,8 +90,9 @@ void STMTest::stmlConstructionTest()
 
     auto a1 = stm::pureF(10);
     auto a2 = stm::pureF(f1);
-    auto a3 = stm::newTVarX(10);
     auto a4 = stm::newTVar(10);
+    auto a5 = stm::readTVar(fakeTVar);
+    auto a6 = stm::writeTVar(fakeTVar, 10);
 }
 
 

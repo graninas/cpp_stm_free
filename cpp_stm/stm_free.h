@@ -14,6 +14,7 @@ namespace stm
 {
 
 #define TVarAny TVar<std::any>
+#define Any std::any
 
 // STM Free
 
@@ -132,21 +133,6 @@ STML<A>
     return f;
 }
 
-
-STMF<STML<TVarAny>>
-    newTVarX(const std::any& val)
-{
-    NewTVarA<STML<TVarAny>> n;
-    n.val = val;
-    n.next = [](const TVarAny& tvar){
-        return pureF(tvar);
-    };
-
-    STMF<STML<TVarAny>> f;
-    f.stmf = n;
-    return f;
-}
-
 STML<TVarAny>
     newTVar(const std::any& val)
 {
@@ -168,16 +154,48 @@ STML<TVarAny>
     return f2;
 }
 
-//ReadTVarA<std::any>
-//    readTVarA(const TVarAny& tvar)
-//{
-//    ReadTVarA<std::any> f;
-//    f.tvar = tvar;
-//    f.next = fp::id;
-//    return f;
-//}
+STML<Any>
+    readTVar(const TVarAny& tvar)
+{
+    ReadTVarA<STML<Any>> n;
+    n.tvar = tvar;
+    n.next = [](const Any& any){
+        return pureF(any);
+    };
 
+    STMF<STML<Any>> f;
+    f.stmf = n;
 
+    BindF<Any> b;
+    b.x = f;
+
+    STML<Any> f2;
+    f2.stml = b;
+
+    return f2;
+}
+
+STML<fp::Unit>
+    writeTVar(const TVarAny& tvar, const Any& val)
+{
+    WriteTVarA<STML<fp::Unit>> n;
+    n.tvar = tvar;
+    n.val = val;
+    n.next = [](const fp::Unit& unit){
+        return pureF(unit);
+    };
+
+    STMF<STML<fp::Unit>> f;
+    f.stmf = n;
+
+    BindF<fp::Unit> b;
+    b.x = f;
+
+    STML<fp::Unit> f2;
+    f2.stml = b;
+
+    return f2;
+}
 
 
 
