@@ -18,105 +18,67 @@ namespace stm
 
 // STM Free
 
-template <typename T, typename Next>
-struct NewTVarC
-{
-    T val;
-    std::function<Next(TVar<T>)> next;
-};
-
 template <typename Next>
-struct NewTVarW
+struct NewTVarA
 {
-    using Method = NewTVarC<std::any, Next>;
-    Method method;
+    std::any val;
+    std::function<Next(TVar<std::any>)> next;
 };
 
-template <typename T, typename Next>
-struct ReadTVarC
+NewTVarA<TVar<std::any>>
+    newTVarA(const std::any& val)
 {
-    TVar<T> tvar;
-    std::function<Next(T)> next;
-};
-
-template <typename Next>
-struct ReadTVarW
-{
-    using Method = ReadTVarC<std::any, Next>;
-    Method method;
-};
-
-template <typename T, typename Next>
-struct WriteTVarC
-{
-    TVar<T> tvar;
-    T val;
-    Next next;
-};
-
-template <typename Next>
-struct WriteTVarW
-{
-    using Method = WriteTVarC<std::any, Next>;
-    Method method;
-};
-
-template <class Next>
-  using STMF = std::variant<NewTVarW<Next>, ReadTVarW<Next>, WriteTVarW<Next>>;
-
-template <class Next>
-    using STML = fp::FreeT<STMF, Next>;
-
-
-// newTVar :: a -> Free Algebra (TVar a)
-template <typename T>
-NewTVarC<T, TVar<T>>
-    newTVarC(const T& val)
-{
-    auto f = NewTVarC<T, TVar<T>>();
+    NewTVarA<TVar<std::any>> f;
     f.val = val;
     f.next = fp::id;
     return f;
 }
 
-
-// writeTVar :: TVar a -> a -> Free Algebra Unit
-template <typename T>
-WriteTVarC<T, fp::Unit>
-    writeTVarC(const TVar<T>& tvar, const T& val)
+template <typename Next>
+struct ReadTVarA
 {
-    auto f = WriteTVarC<T, fp::Unit>();
+    TVar<std::any> tvar;
+    std::function<Next(std::any)> next;
+};
+
+ReadTVarA<std::any>
+    readTVarA(const TVar<std::any>& tvar)
+{
+    ReadTVarA<std::any> f;
+    f.tvar = tvar;
+    f.next = fp::id;
+    return f;
+}
+
+template <typename Next>
+struct WriteTVarA
+{
+    TVar<std::any> tvar;
+    std::any val;
+    Next next;
+};
+
+WriteTVarA<fp::Unit>
+    writeTVarA(const TVar<std::any>& tvar, const std::any& val)
+{
+    WriteTVarA<fp::Unit> f;
     f.tvar = tvar;
     f.val  = val;
     f.next = fp::unit;
     return f;
 }
 
+template <class Next>
+  using STMF = std::variant<NewTVarA<Next>, ReadTVarA<Next>, WriteTVarA<Next>>;
+
+template <class Next>
+    using STML = fp::FreeT<STMF, Next>;
+
+
+// newTVar :: a -> Free f (TVar a)
+// writeTVar :: TVar a -> a -> Free f Unit
 // readTVar :: TVar a -> Free f a
-template <typename T>
-ReadTVarC<T, T>
-    readTVarC(const TVar<T>& tvar)
-{
-    auto f = ReadTVarC<T, T>();
-    f.tvar = tvar;
-    f.next = fp::id;
-    return f;
-}
 
-template <typename T, typename Next>
-NewTVarW<Next>
-    newTVarW(const T& val)
-{
-    NewTVarC<std::any, Next> newTVarAny;
-    newTVarAny.val = std::make_any(val);
-
-    // std::function<Next(TVar<std::any>)>
-    newTVarAny.next = fp::id;
-
-    NewTVarW<Next> f;
-    f.method = newTVarAny;
-    return f;
-}
 
 
 } // namespace stm

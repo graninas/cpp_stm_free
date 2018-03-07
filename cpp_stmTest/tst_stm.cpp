@@ -19,8 +19,9 @@ public:
 
 private Q_SLOTS:
 
-    void stmcConstructionTest();
-    void stmwConstructionTest();
+    void stmaConstructionTest();
+    void stmfConstructionTest();
+    void stmFreeConstructionTest();
 
 
 
@@ -50,22 +51,44 @@ typedef stm::TVar<Fork> TFork;
 //    }
 //    return fp::unit;
 
-void STMTest::stmcConstructionTest()
+void STMTest::stmaConstructionTest()
 {
-    stm::TVar<int> fakeTVar;
+    std::any any = std::any(10);
+    stm::TVar<std::any> fakeTVar;
 
-    stm::NewTVarC<int, stm::TVar<int>> constr1 = stm::newTVarC(10);
-    stm::WriteTVarC<int, fp::Unit>     constr2 = stm::writeTVarC(fakeTVar, 10);
-    stm::ReadTVarC<int, int>           constr3 = stm::readTVarC(fakeTVar);
+    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
+    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
+    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
 }
 
-void STMTest::stmwConstructionTest()
+void STMTest::stmfConstructionTest()
 {
-    stm::TVar<int> fakeTVar;
+    std::any any = std::any(10);
+    stm::TVar<std::any> fakeTVar;
 
+    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
+    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
+    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
 
+    stm::STMF<stm::TVar<std::any>> f1 = constr1;
+    stm::STMF<fp::Unit>            f2 = constr2;
+    stm::STMF<std::any>            f3 = constr3;
 }
 
+
+void STMTest::stmFreeConstructionTest()
+{
+    std::any any = std::any(10);
+    stm::TVar<std::any> fakeTVar;
+
+    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
+    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
+    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
+
+    stm::STMF<stm::TVar<std::any>> f1 = constr1;
+    stm::STMF<fp::Unit>            f2 = constr2;
+    stm::STMF<std::any>            f3 = constr3;
+}
 
 void STMTest::stmTest()
 {
