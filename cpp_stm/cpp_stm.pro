@@ -24,7 +24,7 @@ HEADERS += \
     bind.h \
     stm_free_stack.h \
     stm_free.h \
-    free.h
+    Functor.h
 
 unix {
     target.path = /usr/lib

@@ -21,7 +21,7 @@ private Q_SLOTS:
 
     void stmaConstructionTest();
     void stmfConstructionTest();
-    void stmFreeConstructionTest();
+    void stmlConstructionTest();
 
 
 
@@ -70,13 +70,12 @@ void STMTest::stmfConstructionTest()
     stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
     stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
 
-    stm::STMF<stm::TVar<std::any>> f1 = constr1;
-    stm::STMF<fp::Unit>            f2 = constr2;
-    stm::STMF<std::any>            f3 = constr3;
+    stm::STMF<stm::TVar<std::any>> f1 { constr1 };
+    stm::STMF<fp::Unit>            f2 { constr2 };
+    stm::STMF<std::any>            f3 { constr3 };
 }
 
-
-void STMTest::stmFreeConstructionTest()
+void STMTest::stmlConstructionTest()
 {
     std::any any = std::any(10);
     stm::TVar<std::any> fakeTVar;
@@ -85,10 +84,16 @@ void STMTest::stmFreeConstructionTest()
     stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
     stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
 
-    stm::STMF<stm::TVar<std::any>> f1 = constr1;
-    stm::STMF<fp::Unit>            f2 = constr2;
-    stm::STMF<std::any>            f3 = constr3;
+    stm::STMF<stm::TVar<std::any>> f1 { constr1 };
+    stm::STMF<fp::Unit>            f2 { constr2 };
+    stm::STMF<std::any>            f3 { constr3 };
+
+    auto a1 = stm::pureF(10);
+    auto a2 = stm::pureF(f1);
+    auto a3 = stm::newTVarX(10);
+    auto a4 = stm::newTVar(10);
 }
+
 
 void STMTest::stmTest()
 {
