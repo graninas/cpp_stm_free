@@ -17,9 +17,9 @@ namespace stm
 {
 
 template <typename Ret, template <typename> class Visitor>
-Ret runSTML(const STML<Ret>& stml)
+Ret runSTML(Context& context, const STML<Ret>& stml)
 {
-    Visitor<Ret> visitor;
+    Visitor<Ret> visitor(context);
     std::visit(visitor, stml.stml);
     return visitor.result;
 }
@@ -28,11 +28,19 @@ Ret runSTML(const STML<Ret>& stml)
 template <typename Ret>
 struct MockStmfVisitor
 {
+    Context& _context;
+
+    MockStmfVisitor(Context& context)
+        : _context(context)
+    {
+    }
+
     Ret result;
 
     void operator()(const NewTVarA<STML<Ret>>& f)
     {
         std::cout << "\nNewTVarA";
+//        TVarAny tvar = _context.createNewTVar(f.val);
     }
 
     void operator()(const ReadTVarA<STML<Ret>>& f)
@@ -49,6 +57,13 @@ struct MockStmfVisitor
 template <typename Ret>
 struct MockFreeVisitor
 {
+    Context& _context;
+
+    MockFreeVisitor(Context& context)
+        : _context(context)
+    {
+    }
+
     Ret result;
 
     void operator()(const PureF<Ret>& p)
@@ -61,7 +76,7 @@ struct MockFreeVisitor
     {
         std::cout << "\nFreeF";
 
-        MockStmfVisitor<Ret> visitor;
+        MockStmfVisitor<Ret> visitor(_context);
         std::visit(visitor, f.stmf.stmf);
     }
 

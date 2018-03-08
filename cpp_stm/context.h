@@ -4,6 +4,7 @@
 #include <map>
 #include <any>
 #include <mutex>
+#include <random>
 
 #include "stupid_guid.h"
 #include "tvar.h"
@@ -24,6 +25,10 @@ private:
 
     std::map<TVarId, TVarHandle> _tvars;
     std::mutex _lock;
+
+//    std::default_random_engine _generator;
+//    std::uniform_int_distribution<int> _distribution;
+//    auto dice = std::bind ( distribution, generator );
 
 public:
     Context();

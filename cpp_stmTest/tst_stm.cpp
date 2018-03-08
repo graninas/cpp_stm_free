@@ -50,7 +50,7 @@ void STMTest::stupidGuidTest()
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 16);
-    auto dice = std::bind ( distribution, generator );
+    utils::Dice dice = std::bind ( distribution, generator );
 
     for (auto i = 0; i < 10; ++i)
     {
@@ -127,12 +127,14 @@ void STMTest::visitorTest()
     stm::TVar<std::any> fakeTVar;
 
     stm::STML<int>      a1 = stm::pureF(10);
-    stm::STML<std::any> a2 = stm::readTVar(fakeTVar);
+    stm::STML<stm::TVar<std::any>> a2 = stm::newTVar(10);
 
-    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(a1);
+    stm::Context context1;
+    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(context1, a1);
     QVERIFY(result1 == 10);
 
-    stm::runSTML<std::any, stm::MockFreeVisitor>(a2);
+    stm::Context context2;
+    stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(context2, a2);
 }
 
 void STMTest::stmTest()

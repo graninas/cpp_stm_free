@@ -17,7 +17,8 @@ INCLUDEPATH += /usr/include/x86_64-linux-gnu/c++/7
 INCLUDEPATH += /usr/include/c++/7
 
 SOURCES += \
-    context.cpp
+    context.cpp \
+    stupid_guid.cpp
 
 HEADERS += \
     tvar.h \
