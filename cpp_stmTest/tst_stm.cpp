@@ -2,6 +2,7 @@
 #include <QtTest>
 
 #include <variant>
+#include <iostream>
 
 #include "common.h"
 #include "fork.h"
@@ -139,7 +140,9 @@ void STMTest::visitorTest()
     stm::Context context2;
     auto ustamp2 = context2.newGUID();
     stm::AtomicRuntime runtime2(context2, ustamp2);
-    stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(runtime2, a2);
+    stm::TVar<std::any> result2 = stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(runtime2, a2);
+
+    std::cout << result2.id;
 }
 
 void STMTest::stmTest()

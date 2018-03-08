@@ -24,6 +24,10 @@ Ret runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
     return visitor.result;
 }
 
+// forward declaration;
+template <typename Ret>
+struct MockFreeVisitor;
+
 
 template <typename Ret>
 struct MockStmfVisitor
@@ -45,7 +49,9 @@ struct MockStmfVisitor
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
         _runtime.addTVarHandle(tvarId, tvarHandle);
         TVarAny tvar { tvarId };
+
         auto nextStml = f.next(tvar);
+        result = runSTML<Ret, stm::MockFreeVisitor>(_runtime, nextStml);
     }
 
     void operator()(const ReadTVarA<STML<Ret>>& f)
@@ -83,6 +89,7 @@ struct MockFreeVisitor
 
         MockStmfVisitor<Ret> visitor(_runtime);
         std::visit(visitor, f.stmf.stmf);
+        result = visitor.result;
     }
 
 };
