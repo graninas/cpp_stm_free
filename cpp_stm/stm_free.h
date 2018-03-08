@@ -26,7 +26,7 @@ template <class Next>
 struct STMF;
 
 template <typename Next>
-struct BindF;
+struct FreeF;
 
 template <typename A>
 struct PureF;
@@ -35,7 +35,7 @@ template <typename A>
 STML<A> pureF(const A& x);
 
 template <typename A>
-STML<A> bindF(const STMF<STML<A>>& x);
+STML<A> freeF(const STMF<STML<A>>& x);
 
 // STML
 
@@ -106,11 +106,11 @@ struct PureF
 template <typename A>
 struct STML
 {
-    std::variant<PureF<A>, BindF<A>> stml;
+    std::variant<PureF<A>, FreeF<A>> stml;
 };
 
 template <typename A>
-struct BindF
+struct FreeF
 {
     STMF<STML<A>> x;
 };
@@ -126,32 +126,31 @@ STML<A>
 
 template <typename A>
 STML<A>
-    bindF(const STMF<STML<A>>& x)
+    freeF(const STMF<STML<A>>& x)
 {
     STML<A> f;
-    f.stml = BindF<A>{x};
+    f.stml = FreeF<A>{x};
     return f;
 }
 
+template <typename Ret, template <typename> class Method>
+STML<Ret>
+    wrap(const Method<STML<Ret>>& method)
+    {
+        STMF<STML<Ret>> f {method};
+        FreeF<Ret> b {f};
+        return {b};
+    }
+
 STML<TVarAny>
-    newTVar(const std::any& val)
+    newTVar(const Any& val)
 {
     NewTVarA<STML<TVarAny>> n;
     n.val = val;
     n.next = [](const TVarAny& tvar){
         return pureF(tvar);
     };
-
-    STMF<STML<TVarAny>> f;
-    f.stmf = n;
-
-    BindF<TVarAny> b;
-    b.x = f;
-
-    STML<TVarAny> f2;
-    f2.stml = b;
-
-    return f2;
+    return wrap(n);
 }
 
 STML<Any>
@@ -163,16 +162,7 @@ STML<Any>
         return pureF(any);
     };
 
-    STMF<STML<Any>> f;
-    f.stmf = n;
-
-    BindF<Any> b;
-    b.x = f;
-
-    STML<Any> f2;
-    f2.stml = b;
-
-    return f2;
+    return wrap(n);
 }
 
 STML<fp::Unit>
@@ -185,16 +175,7 @@ STML<fp::Unit>
         return pureF(unit);
     };
 
-    STMF<STML<fp::Unit>> f;
-    f.stmf = n;
-
-    BindF<fp::Unit> b;
-    b.x = f;
-
-    STML<fp::Unit> f2;
-    f2.stml = b;
-
-    return f2;
+    return wrap(n);
 }
 
 
