@@ -3,12 +3,11 @@
 
 #include <variant>
 
-#include <stm.h>
-
 #include "common.h"
 #include "fork.h"
-
 #include "stm_free.h"
+#include "stm_interpreter.h"
+#include "stupid_guid.h"
 
 using namespace sample;
 
@@ -20,6 +19,8 @@ public:
     STMTest();
 
 private Q_SLOTS:
+
+    void stupidGuidTest();
 
     void stmaConstructionTest();
     void stmfConstructionTest();
@@ -40,6 +41,27 @@ private Q_SLOTS:
 
 STMTest::STMTest()
 {
+}
+
+void STMTest::stupidGuidTest()
+{
+    // stupid test of stupid guid
+    std::vector<utils::GUID> guids;
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distribution(1, 16);
+    auto dice = std::bind ( distribution, generator );
+
+    for (auto i = 0; i < 10; ++i)
+    {
+        utils::GUID newGUID = utils::newGUID(dice);
+        QVERIFY(newGUID.size() == 32);
+        for (std::vector<int>::size_type j = 0; j < guids.size(); ++j)
+        {
+            QVERIFY(guids[j] != newGUID);
+        }
+        guids.push_back(newGUID);
+    }
 }
 
 typedef stm::TVar<Fork> TFork;

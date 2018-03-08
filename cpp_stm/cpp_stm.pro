@@ -16,15 +16,15 @@ QMAKE_CXXFLAGS += -nostdinc++
 INCLUDEPATH += /usr/include/x86_64-linux-gnu/c++/7
 INCLUDEPATH += /usr/include/c++/7
 
-SOURCES +=
+SOURCES += \
+    context.cpp
 
 HEADERS += \
-    stm.h \
     tvar.h \
-    bind.h \
-    stm_free_stack.h \
     stm_free.h \
-    Functor.h
+    stm_interpreter.h \
+    context.h \
+    stupid_guid.h
 
 unix {
     target.path = /usr/lib
