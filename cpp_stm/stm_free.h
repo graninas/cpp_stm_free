@@ -4,9 +4,11 @@
 #include <functional>
 #include <any>
 #include <variant>
+#include <iostream>
 
 #include <unit.h>
 #include <identity.h>
+
 
 #include "tvar.h"
 
@@ -89,47 +91,54 @@ WriteTVarA<fp::Unit>
     return f;
 }
 
-template <class Next>
+template <class Ret>
 struct STMF
 {
-    std::variant<NewTVarA<Next>, ReadTVarA<Next>, WriteTVarA<Next>> stmf;
+    std::variant<NewTVarA<Ret>, ReadTVarA<Ret>, WriteTVarA<Ret>> stmf;
 };
 
 // Ad-hoc STML
 
-template <typename A>
+template <typename Ret>
 struct PureF
 {
-    A ret;
+    Ret ret;
 };
 
-template <typename A>
-struct STML
+template <typename Ret>
+STML<Ret>
+    pureF(const Ret& a)
 {
-    std::variant<PureF<A>, FreeF<A>> stml;
-};
-
-template <typename A>
-struct FreeF
-{
-    STMF<STML<A>> x;
-};
-
-template <typename A>
-STML<A>
-    pureF(const A& x)
-{
-    STML<A> f;
-    f.stml = PureF<A>{x};
+    STML<Ret> f;
+    f.stml = PureF<Ret>{a};
     return f;
 }
 
-template <typename A>
-STML<A>
-    freeF(const STMF<STML<A>>& x)
+template <typename Ret>
+Ret unPureF(const PureF<Ret>& p)
 {
-    STML<A> f;
-    f.stml = FreeF<A>{x};
+    return p.ret;
+}
+
+template <typename Ret>
+struct STML
+{
+    std::variant<PureF<Ret>, FreeF<Ret>> stml;
+};
+
+template <typename Ret>
+struct FreeF
+{
+    STMF<STML<Ret>> stmf;
+};
+
+
+template <typename Ret>
+STML<Ret>
+    freeF(const STMF<STML<Ret>>& stmf)
+{
+    STML<Ret> f;
+    f.stml = FreeF<Ret>{stmf};
     return f;
 }
 
@@ -177,6 +186,59 @@ STML<fp::Unit>
 
     return wrap(n);
 }
+
+// ----------------------------------------------------------------------
+
+template <typename Ret, template <typename> class Visitor>
+Ret runSTML(const STML<Ret>& stml)
+{
+    Visitor<Ret> visitor;
+    std::visit(visitor, stml.stml);
+    return visitor.result;
+}
+
+
+template <typename Ret>
+struct MockStmfVisitor
+{
+    Ret result;
+
+    void operator()(const NewTVarA<STML<Ret>>& f)
+    {
+        std::cout << "\nNewTVarA";
+    }
+    void operator()(const ReadTVarA<STML<Ret>>& f)
+    {
+        std::cout << "\nReadTVarA";
+    }
+    void operator()(const WriteTVarA<STML<Ret>>& f)
+    {
+        std::cout << "\nWriteTVarA";
+    }
+};
+
+template <typename Ret>
+struct MockFreeVisitor
+{
+    Ret result;
+
+    void operator()(const PureF<Ret>& p)
+    {
+        std::cout << "\nPureF";
+        result = unPureF(p);
+    }
+
+    void operator()(const FreeF<Ret>& f)
+    {
+        std::cout << "\nFreeF";
+
+        MockStmfVisitor<Ret> visitor;
+
+        // f.stmf == STMF<STML<Ret>>
+        std::visit(visitor, f.stmf.stmf);
+    }
+
+};
 
 
 

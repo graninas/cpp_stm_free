@@ -1,6 +1,8 @@
 #include <QString>
 #include <QtTest>
 
+#include <variant>
+
 #include <stm.h>
 
 #include "common.h"
@@ -22,6 +24,8 @@ private Q_SLOTS:
     void stmaConstructionTest();
     void stmfConstructionTest();
     void stmlConstructionTest();
+
+    void visitorTest();
 
 
 
@@ -88,13 +92,26 @@ void STMTest::stmlConstructionTest()
     stm::STMF<fp::Unit>            f2 { constr2 };
     stm::STMF<std::any>            f3 { constr3 };
 
-    auto a1 = stm::pureF(10);
-    auto a2 = stm::pureF(f1);
-    auto a4 = stm::newTVar(10);
-    auto a5 = stm::readTVar(fakeTVar);
-    auto a6 = stm::writeTVar(fakeTVar, 10);
+    stm::STML<int> a1 = stm::pureF(10);
+    stm::STML<stm::STMF<stm::TVar<std::any>>> a2 = stm::pureF(f1);
+    stm::STML<stm::TVar<std::any>> a4 = stm::newTVar(10);
+    stm::STML<std::any> a5 = stm::readTVar(fakeTVar);
+    stm::STML<fp::Unit> a6 = stm::writeTVar(fakeTVar, 10);
 }
 
+void STMTest::visitorTest()
+{
+    std::any any = std::any(10);
+    stm::TVar<std::any> fakeTVar;
+
+    stm::STML<int>      a1 = stm::pureF(10);
+    stm::STML<std::any> a2 = stm::readTVar(fakeTVar);
+
+    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(a1);
+    QVERIFY(result1 == 10);
+
+    stm::runSTML<std::any, stm::MockFreeVisitor>(a2);
+}
 
 void STMTest::stmTest()
 {
