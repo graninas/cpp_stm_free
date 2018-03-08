@@ -12,26 +12,50 @@
 namespace stm
 {
 
+using UStamp = utils::GUID;
+
 struct TVarHandle
 {
-    utils::GUID ustamp;
+    UStamp ustamp;
     std::any data;
 };
 
+using TVars = std::map<TVarId, TVarHandle>;
 
 class Context
 {
 private:
 
-    std::map<TVarId, TVarHandle> _tvars;
-    std::mutex _lock;
+    TVars _tvars;
 
-//    std::default_random_engine _generator;
-//    std::uniform_int_distribution<int> _distribution;
-//    auto dice = std::bind ( distribution, generator );
+    std::default_random_engine _generator;
+    std::uniform_int_distribution<int> _distribution;
+    utils::Dice _dice;
+
+    std::mutex _lock;
 
 public:
     Context();
+
+    TVarId newGUID();
+};
+
+class AtomicRuntime
+{
+private:
+    Context& _context;
+
+    UStamp _ustamp;
+    TVars _localTVars;
+
+public:
+    AtomicRuntime(Context& context, UStamp ustamp);
+
+    TVarId newGUID();
+
+    UStamp getUStamp() const;
+    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
+
 };
 
 

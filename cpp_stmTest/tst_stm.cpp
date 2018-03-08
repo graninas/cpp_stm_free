@@ -130,11 +130,16 @@ void STMTest::visitorTest()
     stm::STML<stm::TVar<std::any>> a2 = stm::newTVar(10);
 
     stm::Context context1;
-    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(context1, a1);
+    auto ustamp1 = context1.newGUID();
+    stm::AtomicRuntime runtime1(context1, ustamp1);
+
+    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(runtime1, a1);
     QVERIFY(result1 == 10);
 
     stm::Context context2;
-    stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(context2, a2);
+    auto ustamp2 = context2.newGUID();
+    stm::AtomicRuntime runtime2(context2, ustamp2);
+    stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(runtime2, a2);
 }
 
 void STMTest::stmTest()

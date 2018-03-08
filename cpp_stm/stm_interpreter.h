@@ -17,9 +17,9 @@ namespace stm
 {
 
 template <typename Ret, template <typename> class Visitor>
-Ret runSTML(Context& context, const STML<Ret>& stml)
+Ret runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
 {
-    Visitor<Ret> visitor(context);
+    Visitor<Ret> visitor(runtime);
     std::visit(visitor, stml.stml);
     return visitor.result;
 }
@@ -28,10 +28,10 @@ Ret runSTML(Context& context, const STML<Ret>& stml)
 template <typename Ret>
 struct MockStmfVisitor
 {
-    Context& _context;
+    AtomicRuntime& _runtime;
 
-    MockStmfVisitor(Context& context)
-        : _context(context)
+    MockStmfVisitor(AtomicRuntime& runtime)
+        : _runtime(runtime)
     {
     }
 
@@ -40,7 +40,12 @@ struct MockStmfVisitor
     void operator()(const NewTVarA<STML<Ret>>& f)
     {
         std::cout << "\nNewTVarA";
-//        TVarAny tvar = _context.createNewTVar(f.val);
+
+        auto tvarId = _runtime.newGUID();
+        TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
+        _runtime.addTVarHandle(tvarId, tvarHandle);
+        TVarAny tvar { tvarId };
+        auto nextStml = f.next(tvar);
     }
 
     void operator()(const ReadTVarA<STML<Ret>>& f)
@@ -57,10 +62,10 @@ struct MockStmfVisitor
 template <typename Ret>
 struct MockFreeVisitor
 {
-    Context& _context;
+    AtomicRuntime& _runtime;
 
-    MockFreeVisitor(Context& context)
-        : _context(context)
+    MockFreeVisitor(AtomicRuntime& runtime)
+        : _runtime(runtime)
     {
     }
 
@@ -76,7 +81,7 @@ struct MockFreeVisitor
     {
         std::cout << "\nFreeF";
 
-        MockStmfVisitor<Ret> visitor(_context);
+        MockStmfVisitor<Ret> visitor(_runtime);
         std::visit(visitor, f.stmf.stmf);
     }
 

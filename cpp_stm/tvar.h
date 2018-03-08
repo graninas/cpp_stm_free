@@ -14,7 +14,6 @@ template <typename T>
 struct TVar
 {
     TVarId id;
-
 };
 
 } // namespace stm
