@@ -132,14 +132,6 @@ struct FreeF
     STMF<STML<Ret>> stmf;
 };
 
-//template <typename A, typename B>
-//struct BindF
-//{
-//    STML<A> ma;
-//    std::function<STML<B>(A)> f;
-//};
-
-
 template <typename Ret>
 STML<Ret>
     freeF(const STMF<STML<Ret>>& stmf)
@@ -174,7 +166,7 @@ STML<Any>
 {
     ReadTVarA<STML<Any>> n;
     n.tvar = tvar;
-    n.next = [](const Any& any){
+    n.next = [](const Any any){
         return pureF(any);
     };
     return wrap(n);

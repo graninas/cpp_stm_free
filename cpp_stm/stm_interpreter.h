@@ -50,8 +50,7 @@ struct StmfVisitor
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
         _runtime.addTVarHandle(tvarId, tvarHandle);
         TVarAny tvar { tvarId };
-        auto nextStml = f.next(tvar);
-        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
+        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));
     }
 
     void operator()(const ReadTVarA<STML<Ret>>& f)
@@ -59,9 +58,7 @@ struct StmfVisitor
         std::cout << "\nReadTVarA. TVar GUID: " << f.tvar.id;
 
         TVarHandle tvarHandle = _runtime.getTVarHandle(f.tvar.id);
-
-        auto nextStml = f.next(tvarHandle.data);
-        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
+        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvarHandle.data));
     }
 
     void operator()(const WriteTVarA<STML<Ret>>& f)
@@ -69,9 +66,7 @@ struct StmfVisitor
         std::cout << "\nWriteTVarA. TVar GUID: " << f.tvar.id;
 
         _runtime.setTVarHandleData(f.tvar.id, f.val);
-
-        auto nextStml = f.next(fp::unit);
-        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
+        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(fp::unit));
     }
 };
 
@@ -96,7 +91,6 @@ struct StmlVisitor
     void operator()(const FreeF<Ret>& f)
     {
         std::cout << "\nFreeF";
-
         StmfVisitor<Ret> visitor(_runtime);
         std::visit(visitor, f.stmf.stmf);
         result = visitor.result;
