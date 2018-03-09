@@ -132,6 +132,13 @@ struct FreeF
     STMF<STML<Ret>> stmf;
 };
 
+//template <typename A, typename B>
+//struct BindF
+//{
+//    STML<A> ma;
+//    std::function<STML<B>(A)> f;
+//};
+
 
 template <typename Ret>
 STML<Ret>
@@ -184,8 +191,6 @@ STML<fp::Unit>
     };
     return wrap(n);
 }
-
-
 
 
 } // namespace stm

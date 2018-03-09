@@ -25,7 +25,9 @@ HEADERS += \
     stm_free.h \
     stm_interpreter.h \
     context.h \
-    stupid_guid.h
+    stupid_guid.h \
+    stm_bind.h \
+    stm_fmap.h
 
 unix {
     target.path = /usr/lib

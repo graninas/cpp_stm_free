@@ -54,8 +54,10 @@ public:
     TVarId newGUID();
 
     UStamp getUStamp() const;
-    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
 
+    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
+    TVarHandle getTVarHandle(const TVarId& tvarId) const;
+    void setTVarHandleData(const TVarId& tvarId, const std::any& data);
 };
 
 

@@ -5,10 +5,11 @@
 #include <iostream>
 
 #include "common.h"
+#include "stupid_guid.h"
 #include "fork.h"
 #include "stm_free.h"
+#include "stm_bind.h"
 #include "stm_interpreter.h"
-#include "stupid_guid.h"
 
 using namespace sample;
 
@@ -23,21 +24,12 @@ private Q_SLOTS:
 
     void stupidGuidTest();
 
-    void stmaConstructionTest();
-    void stmfConstructionTest();
     void stmlConstructionTest();
-
     void visitorTest();
+    void bindTest();
 
 
 
-    void stmTest();
-    void stmMapPureFreeTest();
-    void stmMapNewTVarFreeTest();
-    void stmPassFreeTest();
-    void stmBindPureTest();
-    void stmBindFreeTest();
-    void stmUnFreeTest();
 };
 
 STMTest::STMTest()
@@ -63,43 +55,6 @@ void STMTest::stupidGuidTest()
         }
         guids.push_back(newGUID);
     }
-}
-
-typedef stm::TVar<Fork> TFork;
-
-//    auto fork = stm::readTVar(tFork);
-//    switch (fork.state)
-//    {
-//        case ForkState::Taken:
-//            stm::writeTVar(tFork, Fork(fork.name, ForkState::Free));
-//        break;
-//        case ForkState::Free:
-//        break;
-//    }
-//    return fp::unit;
-
-void STMTest::stmaConstructionTest()
-{
-    std::any any = std::any(10);
-    stm::TVar<std::any> fakeTVar;
-
-    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
-    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
-    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
-}
-
-void STMTest::stmfConstructionTest()
-{
-    std::any any = std::any(10);
-    stm::TVar<std::any> fakeTVar;
-
-    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
-    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
-    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
-
-    stm::STMF<stm::TVar<std::any>> f1 { constr1 };
-    stm::STMF<fp::Unit>            f2 { constr2 };
-    stm::STMF<std::any>            f3 { constr3 };
 }
 
 void STMTest::stmlConstructionTest()
@@ -134,45 +89,32 @@ void STMTest::visitorTest()
     auto ustamp1 = context1.newGUID();
     stm::AtomicRuntime runtime1(context1, ustamp1);
 
-    int result1 = stm::runSTML<int, stm::MockFreeVisitor>(runtime1, a1);
+    int result1 = stm::runSTML<int, stm::StmlVisitor>(runtime1, a1);
     QVERIFY(result1 == 10);
 
     stm::Context context2;
     auto ustamp2 = context2.newGUID();
     stm::AtomicRuntime runtime2(context2, ustamp2);
-    stm::TVar<std::any> result2 = stm::runSTML<stm::TVar<std::any>, stm::MockFreeVisitor>(runtime2, a2);
-
-    std::cout << result2.id;
+    stm::TVar<std::any> result2 = stm::runSTML<stm::TVar<std::any>, stm::StmlVisitor>(runtime2, a2);
+    QVERIFY(result2.id.size() == 32);
 }
 
-void STMTest::stmTest()
+void STMTest::bindTest()
 {
+    std::function<stm::STML<std::string>(int)> f = [](int)
+    {
+        return stm::pureF(std::string("abc"));
+    };
+
+    stm::STML<std::string> s = stm::bind(stm::pureF(10), f);
+
+    stm::Context context;
+    stm::AtomicRuntime runtime(context, context.newGUID());
+
+    auto result = stm::runSTML<std::string, stm::StmlVisitor>(runtime, s);
+    QVERIFY(result == "abc");
 }
 
-
-void STMTest::stmBindPureTest()
-{
-}
-
-void STMTest::stmMapPureFreeTest()
-{
-}
-
-void STMTest::stmMapNewTVarFreeTest()
-{
-}
-
-void STMTest::stmPassFreeTest()
-{
-}
-
-void STMTest::stmBindFreeTest()
-{
-}
-
-void STMTest::stmUnFreeTest()
-{
-}
 
 QTEST_APPLESS_MAIN(STMTest)
 

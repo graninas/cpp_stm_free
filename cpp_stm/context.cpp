@@ -44,4 +44,17 @@ void AtomicRuntime::addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHa
     _localTVars[tvarId] = tvarHandle;
 }
 
+TVarHandle AtomicRuntime::getTVarHandle(const TVarId& tvarId) const
+{
+    auto found = _localTVars.find(tvarId);
+    if (found == _localTVars.end())
+        throw std::runtime_error("TVar not found.");
+    return found->second;
+}
+
+void AtomicRuntime::setTVarHandleData(const TVarId& tvarId, const std::any& data)
+{
+    _localTVars[tvarId].data = data;
+}
+
 } // namespace stm

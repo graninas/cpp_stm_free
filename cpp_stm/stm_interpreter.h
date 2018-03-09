@@ -26,15 +26,15 @@ Ret runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
 
 // forward declaration;
 template <typename Ret>
-struct MockFreeVisitor;
+struct StmlVisitor;
 
 
 template <typename Ret>
-struct MockStmfVisitor
+struct StmfVisitor
 {
     AtomicRuntime& _runtime;
 
-    MockStmfVisitor(AtomicRuntime& runtime)
+    StmfVisitor(AtomicRuntime& runtime)
         : _runtime(runtime)
     {
     }
@@ -43,34 +43,44 @@ struct MockStmfVisitor
 
     void operator()(const NewTVarA<STML<Ret>>& f)
     {
-        std::cout << "\nNewTVarA";
-
         auto tvarId = _runtime.newGUID();
+
+        std::cout << "\nNewTVarA. TVar GUID: " << tvarId;
+
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
         _runtime.addTVarHandle(tvarId, tvarHandle);
         TVarAny tvar { tvarId };
-
         auto nextStml = f.next(tvar);
-        result = runSTML<Ret, stm::MockFreeVisitor>(_runtime, nextStml);
+        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
     }
 
     void operator()(const ReadTVarA<STML<Ret>>& f)
     {
-        std::cout << "\nReadTVarA";
+        std::cout << "\nReadTVarA. TVar GUID: " << f.tvar.id;
+
+        TVarHandle tvarHandle = _runtime.getTVarHandle(f.tvar.id);
+
+        auto nextStml = f.next(tvarHandle.data);
+        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
     }
 
     void operator()(const WriteTVarA<STML<Ret>>& f)
     {
-        std::cout << "\nWriteTVarA";
+        std::cout << "\nWriteTVarA. TVar GUID: " << f.tvar.id;
+
+        _runtime.setTVarHandleData(f.tvar.id, f.val);
+
+        auto nextStml = f.next(fp::unit);
+        result = runSTML<Ret, StmlVisitor>(_runtime, nextStml);
     }
 };
 
 template <typename Ret>
-struct MockFreeVisitor
+struct StmlVisitor
 {
     AtomicRuntime& _runtime;
 
-    MockFreeVisitor(AtomicRuntime& runtime)
+    StmlVisitor(AtomicRuntime& runtime)
         : _runtime(runtime)
     {
     }
@@ -87,11 +97,10 @@ struct MockFreeVisitor
     {
         std::cout << "\nFreeF";
 
-        MockStmfVisitor<Ret> visitor(_runtime);
+        StmfVisitor<Ret> visitor(_runtime);
         std::visit(visitor, f.stmf.stmf);
         result = visitor.result;
     }
-
 };
 
 } // namespace stm
