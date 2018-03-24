@@ -61,6 +61,7 @@ public:
 
     TVarId newGUID();
     UStamp getUStamp() const;
+    TVars getStagedTVars() const;
 
     void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
     TVarHandle getTVarHandle(const TVarId& tvarId) const;
@@ -68,11 +69,11 @@ public:
 };
 
 template <typename A>
-struct StmResult
+struct RunResult
 {
+    // TODO: Either ADT using std::variant approach.
     bool retry;
     std::optional<A> result;
-    std::optional<TVars> stagedTVars;
 };
 
 } // namespace stm

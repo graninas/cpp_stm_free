@@ -9,7 +9,6 @@
 #include <unit.h>
 #include <identity.h>
 
-
 #include "tvar.h"
 
 namespace stm
@@ -91,10 +90,22 @@ WriteTVarA<fp::Unit>
     return f;
 }
 
+template <typename Next>
+struct RetryA
+{
+};
+
+template <typename Next>
+RetryA<Next>
+    retryA()
+{
+    return {};
+}
+
 template <class Ret>
 struct STMF
 {
-    std::variant<NewTVarA<Ret>, ReadTVarA<Ret>, WriteTVarA<Ret>> stmf;
+    std::variant<NewTVarA<Ret>, ReadTVarA<Ret>, WriteTVarA<Ret>, RetryA<Ret>> stmf;
 };
 
 // Ad-hoc STML
@@ -184,6 +195,13 @@ STML<fp::Unit>
     return wrap(n);
 }
 
+template <typename AnyRet>
+STML<AnyRet>
+    retry()
+{
+    RetryA<STML<AnyRet>> n;
+    return wrap(n);
+}
 
 } // namespace stm
 

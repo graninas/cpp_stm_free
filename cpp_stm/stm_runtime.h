@@ -10,28 +10,6 @@
 namespace stm
 {
 
-//takeSnapshot :: Context -> IO (UStamp, TVars)
-//takeSnapshot (Context mtvars) = do
-//  tvars <- takeMVar mtvars
-//  tvarKVs <- mapM cloneTVarHandle (Map.toList tvars)
-//  putMVar mtvars tvars
-//  ustamp <- newUnique
-//  pure (ustamp, Map.fromList tvarKVs)
-
-//runSTM :: Int -> Context -> STML a -> IO a
-//runSTM delay ctx stml = do
-//  (ustamp, snapshot)                  <- takeSnapshot ctx
-//  (eRes, AtomicRuntime _ stagedTVars) <- runStateT (runSTML stml) (AtomicRuntime ustamp snapshot)
-//  case eRes of
-//    Left RetryCmd -> runSTM (delay * 2) ctx stml      -- TODO: tail recursion
-//    Right res     -> do
-//      success <- tryCommit ctx ustamp stagedTVars
-//      if success
-//        then return res
-//        else runSTM (delay * 2) ctx stml      -- TODO: tail recursion
-
-
-
 template <typename A>
 A runSTM(Context& context, const STML<A>& stml)
 {
@@ -41,19 +19,18 @@ A runSTM(Context& context, const STML<A>& stml)
 
     while (true)
     {
-        StmResult<A> result;
         auto snapshot = context.takeSnapshot();
         auto ustamp = context.newGUID();
         AtomicRuntime runtime {context, ustamp, snapshot};
-        result = runSTML(runtime, stml);
+        RunResult<A> runResult = runSTML(runtime, stml);
 
-        if (result.retry)
+        if (runResult.retry)
             continue;
 
-        bool success = context.tryCommit(ustamp, result.stagedTVars.value());
+        bool success = context.tryCommit(ustamp, runtime.getStagedTVars());
         if (success)
         {
-            return result.result.value();
+            return runResult.result.value();
         }
 
         std::chrono::microseconds interval(backoffIntervalDice());

@@ -17,7 +17,7 @@ namespace stm
 {
 
 template <typename Ret, template <typename> class Visitor>
-Ret runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
+RunResult<Ret> runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
 {
     Visitor<Ret> visitor(runtime);
     std::visit(visitor, stml.stml);
@@ -38,7 +38,7 @@ struct StmfVisitor
     {
     }
 
-    Ret result;
+    RunResult<Ret> result;
 
     void operator()(const NewTVarA<STML<Ret>>& f)
     {
@@ -67,6 +67,13 @@ struct StmfVisitor
         _runtime.setTVarHandleData(f.tvar.id, f.val);
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(fp::unit));
     }
+
+    void operator()(const RetryA<STML<Ret>>&)
+    {
+        std::cout << "\nRetryA.";
+
+        result = { true, std::nullopt };
+    }
 };
 
 template <typename Ret>
@@ -79,12 +86,12 @@ struct StmlVisitor
     {
     }
 
-    Ret result;
+    RunResult<Ret> result;
 
     void operator()(const PureF<Ret>& p)
     {
         std::cout << "\nPureF";
-        result = unPureF(p);
+        result = { false, unPureF(p) };
     }
 
     void operator()(const FreeF<Ret>& f)

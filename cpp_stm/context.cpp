@@ -113,6 +113,11 @@ UStamp AtomicRuntime::getUStamp() const
     return _ustamp;
 }
 
+TVars AtomicRuntime::getStagedTVars() const
+{
+    return _localTVars;
+}
+
 void AtomicRuntime::addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle)
 {
     if (_localTVars.find(tvarId) != _localTVars.end())

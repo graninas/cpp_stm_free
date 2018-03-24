@@ -10,7 +10,7 @@ namespace stm
 template <typename A>
 A atomically(Context& context, const STML<A>& stml)
 {
-
+    return runSTM(context, stml);
 }
 
 } // namespace stm

@@ -85,6 +85,14 @@ struct BindStmfVisitor
         };
         result.stmf = fb;
     }
+
+    void operator()(const RetryA<STML<A>>&)
+    {
+        std::cout << "\nBind: RetryA.";
+
+        RetryA<STML<B>> fb;
+        result.stmf = fb;
+    }
 };
 
 template <typename A, typename B>
@@ -116,28 +124,6 @@ struct BindStmlVisitor
         result.stml = FreeF<B> { visited };
     }
 };
-
-/*
-\val -> NewTVar val
-                \tvar -> ReadTVar tvar
-                                  \val2 -> pure val2
-
-\val -> NewTVarA val
-                 \tvar -> ReadTVarA tvar
-                                    \val2 -> PureF val2
-
-newTVar val :: STML TVarAny
-    >>= \tvar -> readTVar tvar :: STML Any
-                      >>= \val2 -> pure val2 :: STML Any
-
-newTVar val :: STML<TVarAny>
-    >>= \tvar -> readTVar tvar :: STML<Any>
-                      >>= \val2 -> pure val2 :: STML<Any>
-
-
->>= :: STML<a> -> (a -> STML<b>) -> STML<b>
-
-*/
 
 template <typename A, typename B>
 STML<B> bind(const STML<A> ma, const ArrowFunc<A, B>& f)

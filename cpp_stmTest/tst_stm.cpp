@@ -10,6 +10,7 @@
 #include "stm_free.h"
 #include "stm_bind.h"
 #include "stm_interpreter.h"
+#include "stm.h"
 
 using namespace sample;
 
@@ -28,13 +29,23 @@ private Q_SLOTS:
     void visitorTest();
     void bind1Test();
     void bind2Test();
+    void bindRetryTest();
 
-
+    void atomicallyTest();
 
 };
 
 STMTest::STMTest()
 {
+}
+
+template <typename Ret>
+Ret withSuccess(const stm::RunResult<Ret>& result)
+{
+    if (result.retry)
+        throw std::runtime_error("Result is invalid.");
+
+    return result.result.value();
 }
 
 void STMTest::stupidGuidTest()
@@ -80,10 +91,7 @@ void STMTest::stmlConstructionTest()
 
 void STMTest::visitorTest()
 {
-    std::any any = std::any(10);
-    stm::TVar<std::any> fakeTVar;
-
-    stm::STML<int>      a1 = stm::pureF(10);
+    stm::STML<int>                 a1 = stm::pureF(10);
     stm::STML<stm::TVar<std::any>> a2 = stm::newTVar(10);
 
     stm::Context context1;
@@ -91,14 +99,14 @@ void STMTest::visitorTest()
     auto snapshot1 = context1.takeSnapshot();
     stm::AtomicRuntime runtime1(context1, ustamp1, snapshot1);
 
-    int result1 = stm::runSTML<int, stm::StmlVisitor>(runtime1, a1);
+    int result1 = withSuccess(stm::runSTML<int, stm::StmlVisitor>(runtime1, a1));
     QVERIFY(result1 == 10);
 
     stm::Context context2;
     auto ustamp2 = context2.newGUID();
     auto snapshot2 = context2.takeSnapshot();
     stm::AtomicRuntime runtime2(context2, ustamp2, snapshot2);
-    stm::TVar<std::any> result2 = stm::runSTML<stm::TVar<std::any>, stm::StmlVisitor>(runtime2, a2);
+    stm::TVar<std::any> result2 = withSuccess(stm::runSTML<stm::TVar<std::any>, stm::StmlVisitor>(runtime2, a2));
     QVERIFY(result2.id.size() == 32);
 }
 
@@ -115,13 +123,14 @@ void STMTest::bind1Test()
     auto snapshot = context.takeSnapshot();
     stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
 
-    auto result = stm::runSTML<std::string, stm::StmlVisitor>(runtime, s);
+    auto result = withSuccess(stm::runSTML<std::string, stm::StmlVisitor>(runtime, s));
     QVERIFY(result == "abc");
 }
 
 void STMTest::bind2Test()
 {
-    std::function<stm::STML<std::any>(stm::TVar<std::any>)> f = [](const stm::TVar<std::any>& tvar)
+    std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
+            [](const stm::TVar<std::any>& tvar)
     {
         return stm::readTVar(tvar);
     };
@@ -134,8 +143,52 @@ void STMTest::bind2Test()
     auto snapshot = context.takeSnapshot();
     stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
 
-    std::any result = stm::runSTML<std::any, stm::StmlVisitor>(runtime, s);
+    std::any result = withSuccess(stm::runSTML<std::any, stm::StmlVisitor>(runtime, s));
     QVERIFY(std::any_cast<int>(result) == 10);
+}
+
+void STMTest::bindRetryTest()
+{
+    std::function<stm::STML<stm::TVar<std::any>>(stm::TVar<std::any>)> f =
+            [](const stm::TVar<std::any>)
+    {
+        return stm::retry<stm::TVar<std::any>>();
+    };
+
+    auto x = stm::newTVar(10);
+    auto s = stm::bind(x, f);
+
+    stm::Context context;
+    auto snapshot = context.takeSnapshot();
+    stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
+
+    bool success = false;
+    try
+    {
+        withSuccess(stm::runSTML<stm::TVar<std::any>, stm::StmlVisitor>(runtime, s));
+    }
+    catch (...)
+    {
+        success = true;
+    }
+    QVERIFY(success);
+}
+
+void STMTest::atomicallyTest()
+{
+    std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
+            [](const stm::TVar<std::any>& tvar)
+    {
+        return stm::readTVar(tvar);
+    };
+
+    auto x = stm::newTVar(10);
+
+    stm::STML<std::any> s = stm::bind(x, f);
+
+    stm::Context context;
+//    std::any result = stm::atomically(context, s);
+//    QVERIFY(std::any_cast<int>(result) == 10);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
