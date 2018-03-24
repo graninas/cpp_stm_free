@@ -22,7 +22,7 @@ A runSTM(Context& context, const STML<A>& stml)
         auto snapshot = context.takeSnapshot();
         auto ustamp = context.newGUID();
         AtomicRuntime runtime {context, ustamp, snapshot};
-        RunResult<A> runResult = runSTML(runtime, stml);
+        RunResult<A> runResult = runSTML<A, stm::StmlVisitor>(runtime, stml);
 
         if (runResult.retry)
             continue;

@@ -187,8 +187,8 @@ void STMTest::atomicallyTest()
     stm::STML<std::any> s = stm::bind(x, f);
 
     stm::Context context;
-//    std::any result = stm::atomically(context, s);
-//    QVERIFY(std::any_cast<int>(result) == 10);
+    auto result = stm::atomically(context, s);
+    QVERIFY(std::any_cast<int>(result) == 10);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
