@@ -88,14 +88,16 @@ void STMTest::visitorTest()
 
     stm::Context context1;
     auto ustamp1 = context1.newGUID();
-    stm::AtomicRuntime runtime1(context1, ustamp1);
+    auto snapshot1 = context1.takeSnapshot();
+    stm::AtomicRuntime runtime1(context1, ustamp1, snapshot1);
 
     int result1 = stm::runSTML<int, stm::StmlVisitor>(runtime1, a1);
     QVERIFY(result1 == 10);
 
     stm::Context context2;
     auto ustamp2 = context2.newGUID();
-    stm::AtomicRuntime runtime2(context2, ustamp2);
+    auto snapshot2 = context2.takeSnapshot();
+    stm::AtomicRuntime runtime2(context2, ustamp2, snapshot2);
     stm::TVar<std::any> result2 = stm::runSTML<stm::TVar<std::any>, stm::StmlVisitor>(runtime2, a2);
     QVERIFY(result2.id.size() == 32);
 }
@@ -110,7 +112,8 @@ void STMTest::bind1Test()
     stm::STML<std::string> s = stm::bind(stm::pureF(10), f);
 
     stm::Context context;
-    stm::AtomicRuntime runtime(context, context.newGUID());
+    auto snapshot = context.takeSnapshot();
+    stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
 
     auto result = stm::runSTML<std::string, stm::StmlVisitor>(runtime, s);
     QVERIFY(result == "abc");
@@ -128,13 +131,12 @@ void STMTest::bind2Test()
     stm::STML<std::any> s = stm::bind(x, f);
 
     stm::Context context;
-    stm::AtomicRuntime runtime(context, context.newGUID());
+    auto snapshot = context.takeSnapshot();
+    stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
 
     std::any result = stm::runSTML<std::any, stm::StmlVisitor>(runtime, s);
     QVERIFY(std::any_cast<int>(result) == 10);
 }
-
-
 
 QTEST_APPLESS_MAIN(STMTest)
 

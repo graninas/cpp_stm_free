@@ -12,17 +12,94 @@ Context::Context()
 {
 }
 
-TVarId Context::newGUID()
+void Context::takeLock()
 {
     _lock.lock();
-    auto guid = utils::newGUID(_dice);
+}
+
+void Context::releaseLock()
+{
     _lock.unlock();
+}
+
+TVars Context::takeSnapshot()
+{
+    takeLock();
+    auto tvars = _tvars;
+    releaseLock();
+    return tvars;
+}
+
+TVarId Context::newGUID()
+{
+    takeLock();
+    auto guid = utils::newGUID(_dice);
+    releaseLock();
     return guid;
 }
 
-AtomicRuntime::AtomicRuntime(Context &context, UStamp ustamp)
+//tryCommit :: Context -> UStamp -> TVars -> IO Bool
+//tryCommit (Context mtvars) ustamp stagedTVars = do
+//  tvars <- takeMVar mtvars
+
+//  let conflict = Map.foldMapWithKey (f tvars "") stagedTVars
+//  let newTVars = Map.unionWith (merge ustamp) stagedTVars tvars
+
+//  putMVar mtvars $ if null conflict then newTVars else tvars
+
+//  pure $ null conflict
+
+//  where
+//    f :: TVars -> String -> TVarId -> TVarHandle -> String
+//    f origTvars acc tvarId (TVarHandle stagedUS _) = case Map.lookup tvarId origTvars of
+//      Nothing                                         -> acc
+//      Just (TVarHandle origUS _) | origUS == stagedUS -> acc
+//                                 | otherwise          -> acc ++ " " ++ show tvarId
+//    merge :: UStamp -> TVarHandle -> TVarHandle -> TVarHandle
+//    merge us' (TVarHandle _ d) _ = TVarHandle us' d
+
+bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
+{
+    takeLock();
+
+    bool conflict = false;
+    for (auto it = stagedTvars.begin(); it != stagedTvars.end(); ++it)
+    {
+        TVarId stagedTVarId = it->first;
+        auto found = _tvars.find(stagedTVarId);
+
+        if (found == _tvars.end())
+            continue;
+
+        TVarHandle stagedTVarHandle = it->second;
+        TVarHandle origTVarHandle = found->second;
+
+        if (stagedTVarHandle.ustamp != origTVarHandle.ustamp)
+        {
+            conflict = true;
+            break;
+        }
+    }
+
+    if (!conflict)
+    {
+        for (auto it = stagedTvars.begin(); it != stagedTvars.end(); ++it)
+        {
+            TVarId stagedTVarId = it->first;
+            TVarHandle stagedTVarHandle = it->second;
+            stagedTVarHandle.ustamp = ustamp;
+            _tvars[stagedTVarId] = stagedTVarHandle;
+        }
+    }
+
+    releaseLock();
+    return !conflict;
+}
+
+AtomicRuntime::AtomicRuntime(Context &context, const UStamp &ustamp, const TVars &tvars)
     : _context(context)
     , _ustamp(ustamp)
+    , _localTVars(tvars)
 {
 }
 

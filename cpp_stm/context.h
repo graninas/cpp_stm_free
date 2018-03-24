@@ -5,6 +5,7 @@
 #include <any>
 #include <mutex>
 #include <random>
+#include <optional>
 
 #include "stupid_guid.h"
 #include "tvar.h"
@@ -34,10 +35,17 @@ private:
 
     std::mutex _lock;
 
+    void takeLock();
+    void releaseLock();
+
 public:
     Context();
 
+    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
+
     TVarId newGUID();
+    TVars takeSnapshot();
+
 };
 
 class AtomicRuntime
@@ -49,10 +57,9 @@ private:
     TVars _localTVars;
 
 public:
-    AtomicRuntime(Context& context, UStamp ustamp);
+    AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
 
     TVarId newGUID();
-
     UStamp getUStamp() const;
 
     void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
@@ -60,7 +67,13 @@ public:
     void setTVarHandleData(const TVarId& tvarId, const std::any& data);
 };
 
-
+template <typename A>
+struct StmResult
+{
+    bool retry;
+    std::optional<A> result;
+    std::optional<TVars> stagedTVars;
+};
 
 } // namespace stm
 

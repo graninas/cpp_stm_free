@@ -28,7 +28,6 @@ Ret runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
 template <typename Ret>
 struct StmlVisitor;
 
-
 template <typename Ret>
 struct StmfVisitor
 {
