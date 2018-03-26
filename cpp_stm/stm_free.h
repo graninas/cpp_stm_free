@@ -45,6 +45,21 @@ struct NewTVar
 {
     A val;
     std::function<Next(TVar<A>)> next;
+
+    NewTVar<Any, Next> toAny() const
+    {
+        std::function<Next(TVar<A>)> nextCopy = next;
+
+        NewTVar<Any, Next> m;
+        m.val = val;
+        m.next = [=](const TVarAny& tvarAny)
+        {
+            TVar<A> tvar;
+            tvar.id = tvarAny.id;
+            return nextCopy(tvar);
+        };
+        return m;
+    }
 };
 
 template <typename Next>
@@ -55,6 +70,22 @@ struct ReadTVar
 {
     TVar<A> tvar;
     std::function<Next(A)> next;
+
+    ReadTVar<Any, Next> toAny() const
+    {
+        std::function<Next(A)> nextCopy = next;
+        TVar<Any> tvar2;
+        tvar2.id = tvar.id;
+
+        ReadTVar<Any, Next> m;
+        m.tvar = tvar2;
+        m.next = [=](const Any& val)
+        {
+            A val2 = std::any_cast<A>(val);
+            return nextCopy(val2);
+        };
+        return m;
+    }
 };
 
 template <typename Next>
@@ -66,6 +97,22 @@ struct WriteTVar
     TVar<A> tvar;
     A val;
     std::function<Next(fp::Unit)> next;
+
+    WriteTVar<Any, Next> toAny() const
+    {
+        std::function<Next(fp::Unit)> nextCopy;
+        TVar<Any> tvar2;
+        tvar2.id = tvar.id;
+
+        WriteTVar<Any, Next> m;
+        m.tvar = tvar2;
+        m.val  = val;
+        m.next = [=](const fp::Unit& unit)
+        {
+            return nextCopy(unit);
+        };
+        return m;
+    }
 };
 
 template <typename Next>
@@ -149,21 +196,6 @@ STML<TVarAny>
     return wrap(n);
 }
 
-// Experiments
-//template <typename A>
-//STML<TVar<A>>
-//    newTVar(const A& val)
-//{
-//    NewTVarA<STML<TVarAny>> n;
-//    n.val = val;
-//    n.next = [=](const TVarAny& tvar){
-//        TVar<A> tvar2;
-//        tvar2.id = tvar;
-//        return pureF(tvar2);
-//    };
-//    return wrap(n);
-//}
-
 STML<Any>
     readTVar(const TVarAny& tvar)
 {
@@ -193,6 +225,57 @@ STML<AnyRet>
 {
     RetryA<STML<AnyRet>> n;
     return wrap(n);
+}
+
+// Experiments
+template <typename A, typename Ret, template <typename, typename> class Method>
+STML<Ret>
+    wrapT(const Method<A, STML<Ret>>& method)
+{
+    Method<Any, STML<Ret>> method2;
+    method2 = method.toAny();
+
+    STMF<STML<Ret>> f {method2};
+    FreeF<Ret> b {f};
+    return {b};
+}
+
+template <typename A>
+STML<TVar<A>>
+    newTVarT(const A& val)
+{
+    NewTVar<A, STML<TVar<A>>> n;
+    n.val = val;
+    n.next = [](const TVar<A>& tvar) {
+        return pureF(tvar);
+    };
+    return wrapT(n);
+}
+
+template <typename A>
+STML<A>
+    readTVarT(const TVar<A>& tvar)
+{
+    ReadTVar<A, STML<A>> n;
+    n.tvar = tvar;
+    n.next = [](const A& val) {
+        return pureF(val);
+    };
+    return wrapT(n);
+}
+
+
+template <typename A>
+STML<fp::Unit>
+    writeTVarT(const TVar<A>& tvar, const A& val)
+{
+    WriteTVar<A, STML<fp::Unit>> n;
+    n.tvar = tvar;
+    n.val  = val;
+    n.next = [](const fp::Unit& unit) {
+        return pureF(unit);
+    };
+    return wrapT(n);
 }
 
 } // namespace stm

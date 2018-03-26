@@ -40,11 +40,12 @@ struct StmfVisitor
 
     RunResult<Ret> result;
 
-    void operator()(const NewTVarA<STML<Ret>>& f)
+    template <typename A>
+    void operator()(const NewTVar<A, STML<Ret>>& f)
     {
         auto tvarId = _runtime.newGUID();
 
-        std::cout << "\nNewTVarA. TVar GUID: " << tvarId;
+        std::cout << "\nNewTVar. TVar GUID: " << tvarId;
 
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
         _runtime.addTVarHandle(tvarId, tvarHandle);
@@ -52,28 +53,38 @@ struct StmfVisitor
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));
     }
 
-    void operator()(const ReadTVarA<STML<Ret>>& f)
+    template <typename A>
+    void operator()(const ReadTVar<A, STML<Ret>>& f)
     {
-        std::cout << "\nReadTVarA. TVar GUID: " << f.tvar.id;
+        std::cout << "\nReadTVar. TVar GUID: " << f.tvar.id;
 
         TVarHandle tvarHandle = _runtime.getTVarHandle(f.tvar.id);
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvarHandle.data));
     }
 
-    void operator()(const WriteTVarA<STML<Ret>>& f)
+    template <typename A>
+    void operator()(const WriteTVar<A, STML<Ret>>& f)
     {
-        std::cout << "\nWriteTVarA. TVar GUID: " << f.tvar.id;
+        std::cout << "\nWriteTVar. TVar GUID: " << f.tvar.id;
 
         _runtime.setTVarHandleData(f.tvar.id, f.val);
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(fp::unit));
     }
 
-    void operator()(const RetryA<STML<Ret>>&)
+    template <typename A>
+    void operator()(const Retry<A, STML<Ret>>&)
     {
-        std::cout << "\nRetryA.";
+        std::cout << "\nRetry.";
 
         result = { true, std::nullopt };
     }
+
+//    void operator()(const RetryA<STML<Ret>>&)
+//    {
+//        std::cout << "\nRetryA.";
+
+//        result = { true, std::nullopt };
+//    }
 };
 
 template <typename Ret>

@@ -30,11 +30,8 @@ private Q_SLOTS:
     void bind1Test();
     void bind2Test();
     void bindRetryTest();
-
-    void coercingTest();
-
     void atomicallyTest();
-
+    void coercingTest();
 };
 
 STMTest::STMTest()
@@ -176,22 +173,6 @@ void STMTest::bindRetryTest()
     QVERIFY(success);
 }
 
-void STMTest::coercingTest()
-{
-//    std::function<stm::STML<int>(stm::TVar<int>)> f =
-//            [](const stm::TVar<int>& tvar)
-//    {
-//        return stm::readTVarT(tvar);
-//    };
-//    stm::STML<stm::TVar<int>> x = stm::newTVarT(10);
-//    stm::STML<int> s = stm::bind(x, f);
-
-
-//    stm::STML<stm::TVar<int>> x = stm::newTVar(10);
-
-
-}
-
 void STMTest::atomicallyTest()
 {
     std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
@@ -207,6 +188,39 @@ void STMTest::atomicallyTest()
     stm::Context context;
     auto result = stm::atomically(context, s);
     QVERIFY(std::any_cast<int>(result) == 10);
+}
+
+void STMTest::coercingTest()
+{
+    using TVarInt = stm::TVar<int>;
+    using STMLInt = stm::STML<int>;
+
+    std::function<STMLInt(TVarInt)> f1 =
+            [](const TVarInt& tvar)
+    {
+        return stm::readTVarT(tvar);
+    };
+
+    std::function<stm::STML<fp::Unit>(TVarInt)> f2 =
+            [](const TVarInt& tvar)
+    {
+        return stm::writeTVarT(tvar, 20);
+    };
+
+    std::function<stm::STML<fp::Unit>(TVarInt)> f3 =
+            [](const TVarInt&)
+    {
+        return stm::retry<fp::Unit>();
+    };
+
+    stm::STML<TVarInt>  m1 = stm::newTVarT(10);
+    stm::STML<int>      m2 = stm::bind(m1, f1);
+    stm::STML<fp::Unit> x1 = stm::bind(m1, f2);
+    stm::STML<fp::Unit> y1 = stm::bind(m1, f3);
+
+    stm::Context context;
+    int result1 = stm::atomically(context, m2);
+    QVERIFY(result1 == 10);
 }
 
 QTEST_APPLESS_MAIN(STMTest)
