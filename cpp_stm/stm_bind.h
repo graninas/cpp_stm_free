@@ -98,7 +98,7 @@ struct BindStmfVisitor
 template <typename A, typename B>
 struct BindStmlVisitor
 {
-    ArrowFunc<A,B> fTemplate;
+    ArrowFunc<A, B> fTemplate;
     STML<B> result;
 
     BindStmlVisitor(const ArrowFunc<A,B>& func)

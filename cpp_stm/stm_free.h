@@ -14,8 +14,8 @@
 namespace stm
 {
 
-#define TVarAny TVar<std::any>
-#define Any std::any
+using TVarAny = TVar<std::any>;
+using Any = std::any;
 
 // STM Free
 
@@ -40,67 +40,44 @@ STML<A> freeF(const STMF<STML<A>>& x);
 
 // STML
 
-template <typename Next>
-struct NewTVarA
+template <typename A, typename Next>
+struct NewTVar
 {
-    std::any val;
-    std::function<Next(TVarAny)> next;
+    A val;
+    std::function<Next(TVar<A>)> next;
 };
 
-NewTVarA<TVarAny>
-    newTVarA(const std::any& val)
-{
-    NewTVarA<TVarAny> f;
-    f.val = val;
-    f.next = fp::id;
-    return f;
-}
-
 template <typename Next>
-struct ReadTVarA
+using NewTVarA = NewTVar<Any, Next>;
+
+template <typename A, typename Next>
+struct ReadTVar
 {
-    TVarAny tvar;
-    std::function<Next(std::any)> next;
+    TVar<A> tvar;
+    std::function<Next(A)> next;
 };
 
-ReadTVarA<std::any>
-    readTVarA(const TVarAny& tvar)
-{
-    ReadTVarA<std::any> f;
-    f.tvar = tvar;
-    f.next = fp::id;
-    return f;
-}
-
 template <typename Next>
-struct WriteTVarA
+using ReadTVarA = ReadTVar<Any, Next>;
+
+template <typename A, typename Next>
+struct WriteTVar
 {
-    TVarAny tvar;
-    std::any val;
+    TVar<A> tvar;
+    A val;
     std::function<Next(fp::Unit)> next;
 };
 
-WriteTVarA<fp::Unit>
-    writeTVarA(const TVarAny& tvar, const std::any& val)
-{
-    WriteTVarA<fp::Unit> f;
-    f.tvar = tvar;
-    f.val  = val;
-    f.next = fp::id;
-    return f;
-}
-
 template <typename Next>
-struct RetryA
+using WriteTVarA = WriteTVar<Any, Next>;
+
+template <typename A, typename Next>
+struct Retry
 {
 };
 
 template <typename Next>
-RetryA<Next>
-    retryA()
-{
-    return {};
-}
+using RetryA = Retry<Any, Next>;
 
 template <class Ret>
 struct STMF
@@ -152,25 +129,40 @@ STML<Ret>
     return f;
 }
 
-template <typename Ret, template <typename> class Method>
+template <typename Ret, template <typename, typename> class Method>
 STML<Ret>
-    wrap(const Method<STML<Ret>>& method)
-    {
-        STMF<STML<Ret>> f {method};
-        FreeF<Ret> b {f};
-        return {b};
-    }
+    wrap(const Method<Any, STML<Ret>>& method)
+{
+    STMF<STML<Ret>> f {method};
+    FreeF<Ret> b {f};
+    return {b};
+}
 
 STML<TVarAny>
     newTVar(const Any& val)
 {
     NewTVarA<STML<TVarAny>> n;
     n.val = val;
-    n.next = [](const TVarAny& tvar){
+    n.next = [](const TVarAny& tvar) {
         return pureF(tvar);
     };
     return wrap(n);
 }
+
+// Experiments
+//template <typename A>
+//STML<TVar<A>>
+//    newTVar(const A& val)
+//{
+//    NewTVarA<STML<TVarAny>> n;
+//    n.val = val;
+//    n.next = [=](const TVarAny& tvar){
+//        TVar<A> tvar2;
+//        tvar2.id = tvar;
+//        return pureF(tvar2);
+//    };
+//    return wrap(n);
+//}
 
 STML<Any>
     readTVar(const TVarAny& tvar)

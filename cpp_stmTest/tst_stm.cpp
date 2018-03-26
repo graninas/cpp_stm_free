@@ -31,6 +31,8 @@ private Q_SLOTS:
     void bind2Test();
     void bindRetryTest();
 
+    void coercingTest();
+
     void atomicallyTest();
 
 };
@@ -71,22 +73,22 @@ void STMTest::stupidGuidTest()
 
 void STMTest::stmlConstructionTest()
 {
-    std::any any = std::any(10);
-    stm::TVar<std::any> fakeTVar;
+//    std::any any = std::any(10);
+//    stm::TVar<std::any> fakeTVar;
 
-    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
-    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
-    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
+//    stm::NewTVarA<stm::TVar<std::any>> constr1 = stm::newTVarA(any);
+//    stm::WriteTVarA<fp::Unit>          constr2 = stm::writeTVarA(fakeTVar, any);
+//    stm::ReadTVarA<std::any>           constr3 = stm::readTVarA(fakeTVar);
 
-    stm::STMF<stm::TVar<std::any>> f1 { constr1 };
-    stm::STMF<fp::Unit>            f2 { constr2 };
-    stm::STMF<std::any>            f3 { constr3 };
+//    stm::STMF<stm::TVar<std::any>> f1 { constr1 };
+//    stm::STMF<fp::Unit>            f2 { constr2 };
+//    stm::STMF<std::any>            f3 { constr3 };
 
-    stm::STML<int> a1 = stm::pureF(10);
-    stm::STML<stm::STMF<stm::TVar<std::any>>> a2 = stm::pureF(f1);
-    stm::STML<stm::TVar<std::any>> a4 = stm::newTVar(10);
-    stm::STML<std::any> a5 = stm::readTVar(fakeTVar);
-    stm::STML<fp::Unit> a6 = stm::writeTVar(fakeTVar, 10);
+//    stm::STML<int> a1 = stm::pureF(10);
+//    stm::STML<stm::STMF<stm::TVar<std::any>>> a2 = stm::pureF(f1);
+//    stm::STML<stm::TVar<std::any>> a4 = stm::newTVar(10);
+//    stm::STML<std::any> a5 = stm::readTVar(fakeTVar);
+//    stm::STML<fp::Unit> a6 = stm::writeTVar(fakeTVar, 10);
 }
 
 void STMTest::visitorTest()
@@ -172,6 +174,22 @@ void STMTest::bindRetryTest()
         success = true;
     }
     QVERIFY(success);
+}
+
+void STMTest::coercingTest()
+{
+//    std::function<stm::STML<int>(stm::TVar<int>)> f =
+//            [](const stm::TVar<int>& tvar)
+//    {
+//        return stm::readTVarT(tvar);
+//    };
+//    stm::STML<stm::TVar<int>> x = stm::newTVarT(10);
+//    stm::STML<int> s = stm::bind(x, f);
+
+
+//    stm::STML<stm::TVar<int>> x = stm::newTVar(10);
+
+
 }
 
 void STMTest::atomicallyTest()
