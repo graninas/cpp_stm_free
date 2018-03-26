@@ -9,6 +9,8 @@
 
 namespace stm
 {
+namespace free
+{
 
 template <typename A>
 A runSTM(Context& context, const STML<A>& stml)
@@ -22,7 +24,7 @@ A runSTM(Context& context, const STML<A>& stml)
         auto snapshot = context.takeSnapshot();
         auto ustamp = context.newGUID();
         AtomicRuntime runtime {context, ustamp, snapshot};
-        RunResult<A> runResult = runSTML<A, stm::StmlVisitor>(runtime, stml);
+        RunResult<A> runResult = runSTML<A, StmlVisitor>(runtime, stml);
 
         if (runResult.retry)
             continue;
@@ -38,6 +40,7 @@ A runSTM(Context& context, const STML<A>& stml)
     }
 }
 
+} // namespace free
 } // namespace stm
 
 #endif // STM_RUNTIME_H

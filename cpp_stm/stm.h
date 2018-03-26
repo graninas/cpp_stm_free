@@ -3,12 +3,15 @@
 
 #include "context.h"
 #include "stm_runtime.h"
-
 #include "stm_free.h"
 #include "stm_bind.h"
+#include "tvar.h"
 
 namespace stm
 {
+
+template <typename A>
+using STML = free::STML<A>;
 
 template <typename A>
 A atomically(Context& context, const STML<A>& stml)
@@ -16,42 +19,46 @@ A atomically(Context& context, const STML<A>& stml)
     return runSTM(context, stml);
 }
 
-template <typename A>
-STML<TVar<A>>
-    newTVar(const A& val)
+const auto newTVar = [](const auto& val)
 {
-    NewTVar<A, STML<TVar<A>>> n;
-    n.val = val;
-    n.next = [](const TVar<A>& tvar) {
-        return pureF(tvar);
-    };
-    return wrapT(n);
-}
+    return free::newTVar(val);
+};
 
-template <typename A>
-STML<A>
-    readTVar(const TVar<A>& tvar)
+const auto readTVar = [](const auto& tvar)
 {
-    ReadTVar<A, STML<A>> n;
-    n.tvar = tvar;
-    n.next = [](const A& val) {
-        return pureF(val);
-    };
-    return wrapT(n);
-}
+    return free::readTVar(tvar);
+};
 
-
-template <typename A>
-STML<fp::Unit>
-    writeTVar(const TVar<A>& tvar, const A& val)
+const auto writeTVar = [](const auto& tvar)
 {
-    WriteTVar<A, STML<fp::Unit>> n;
-    n.tvar = tvar;
-    n.val  = val;
-    n.next = [](const fp::Unit& unit) {
-        return pureF(unit);
+    return [&](const auto& val)
+    {
+        return free::writeTVar(tvar, val);
     };
-    return wrapT(n);
+};
+
+const auto writeTVarV = [](const auto& val)
+{
+    return [&](const auto& tvar)
+    {
+        return free::writeTVar(tvar, val);
+    };
+};
+
+const auto retry = [](const auto&)
+{
+    return free::retry<fp::Unit>();
+};
+
+const auto pure = [](const auto& a)
+{
+    return free::pureF(a);
+};
+
+template <typename A, typename B>
+STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
+{
+    return free::bind(ma, f);
 }
 
 } // namespace stm

@@ -15,6 +15,8 @@
 
 namespace stm
 {
+namespace free
+{
 
 template <typename Ret, template <typename> class Visitor>
 RunResult<Ret> runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
@@ -107,6 +109,7 @@ struct StmlVisitor
     }
 };
 
+} // namespace free
 } // namespace stm
 
 #endif // STM_INTERPRETER_H

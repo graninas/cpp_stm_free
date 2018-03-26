@@ -14,6 +14,8 @@
 
 namespace stm
 {
+namespace free
+{
 
 template <typename A, typename B>
 using ArrowFunc = std::function<STML<B>(A)>;
@@ -133,6 +135,7 @@ STML<B> bind(const STML<A> ma, const ArrowFunc<A, B>& f)
     return visitor.result;
 }
 
-}
+} // namespace free
+} // namespace stm
 
 #endif // STM_BIND_H

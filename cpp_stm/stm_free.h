@@ -1,5 +1,5 @@
-#ifndef STM_STML_H
-#define STM_STML_H
+#ifndef STM_FREE_H
+#define STM_FREE_H
 
 #include <functional>
 #include <any>
@@ -12,6 +12,8 @@
 #include "tvar.h"
 
 namespace stm
+{
+namespace free
 {
 
 using TVarAny = TVar<std::any>;
@@ -240,7 +242,45 @@ STML<Ret>
     return {b};
 }
 
+template <typename A>
+STML<TVar<A>>
+    newTVar(const A& val)
+{
+    NewTVar<A, STML<TVar<A>>> n;
+    n.val = val;
+    n.next = [](const TVar<A>& tvar) {
+        return pureF(tvar);
+    };
+    return wrapT(n);
+}
+
+template <typename A>
+STML<A>
+    readTVar(const TVar<A>& tvar)
+{
+    ReadTVar<A, STML<A>> n;
+    n.tvar = tvar;
+    n.next = [](const A& val) {
+        return pureF(val);
+    };
+    return wrapT(n);
+}
+
+template <typename A>
+STML<fp::Unit>
+    writeTVar(const TVar<A>& tvar, const A& val)
+{
+    free::WriteTVar<A, STML<fp::Unit>> n;
+    n.tvar = tvar;
+    n.val  = val;
+    n.next = [](const fp::Unit& unit) {
+        return pureF(unit);
+    };
+    return wrapT(n);
+}
+
+} // namespace free
 } // namespace stm
 
-#endif // STM_STML_H
+#endif // STM_FREE_H
 
