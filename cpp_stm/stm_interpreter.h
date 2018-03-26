@@ -78,13 +78,6 @@ struct StmfVisitor
 
         result = { true, std::nullopt };
     }
-
-//    void operator()(const RetryA<STML<Ret>>&)
-//    {
-//        std::cout << "\nRetryA.";
-
-//        result = { true, std::nullopt };
-//    }
 };
 
 template <typename Ret>

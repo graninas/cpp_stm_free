@@ -100,7 +100,7 @@ struct WriteTVar
 
     WriteTVar<Any, Next> toAny() const
     {
-        std::function<Next(fp::Unit)> nextCopy;
+        std::function<Next(fp::Unit)> nextCopy = next;
         TVar<Any> tvar2;
         tvar2.id = tvar.id;
 
