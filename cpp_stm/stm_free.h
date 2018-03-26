@@ -178,7 +178,7 @@ STML<Ret>
 
 template <typename Ret, template <typename, typename> class Method>
 STML<Ret>
-    wrap(const Method<Any, STML<Ret>>& method)
+    wrapA(const Method<Any, STML<Ret>>& method)
 {
     STMF<STML<Ret>> f {method};
     FreeF<Ret> b {f};
@@ -186,29 +186,29 @@ STML<Ret>
 }
 
 STML<TVarAny>
-    newTVar(const Any& val)
+    newTVarA(const Any& val)
 {
     NewTVarA<STML<TVarAny>> n;
     n.val = val;
     n.next = [](const TVarAny& tvar) {
         return pureF(tvar);
     };
-    return wrap(n);
+    return wrapA(n);
 }
 
 STML<Any>
-    readTVar(const TVarAny& tvar)
+    readTVarA(const TVarAny& tvar)
 {
     ReadTVarA<STML<Any>> n;
     n.tvar = tvar;
     n.next = [](const Any any){
         return pureF(any);
     };
-    return wrap(n);
+    return wrapA(n);
 }
 
 STML<fp::Unit>
-    writeTVar(const TVarAny& tvar, const Any& val)
+    writeTVarA(const TVarAny& tvar, const Any& val)
 {
     WriteTVarA<STML<fp::Unit>> n;
     n.tvar = tvar;
@@ -216,7 +216,7 @@ STML<fp::Unit>
     n.next = [](const fp::Unit& unit){
         return pureF(unit);
     };
-    return wrap(n);
+    return wrapA(n);
 }
 
 template <typename AnyRet>
@@ -224,7 +224,7 @@ STML<AnyRet>
     retry()
 {
     RetryA<STML<AnyRet>> n;
-    return wrap(n);
+    return wrapA(n);
 }
 
 // Experiments
@@ -238,44 +238,6 @@ STML<Ret>
     STMF<STML<Ret>> f {method2};
     FreeF<Ret> b {f};
     return {b};
-}
-
-template <typename A>
-STML<TVar<A>>
-    newTVarT(const A& val)
-{
-    NewTVar<A, STML<TVar<A>>> n;
-    n.val = val;
-    n.next = [](const TVar<A>& tvar) {
-        return pureF(tvar);
-    };
-    return wrapT(n);
-}
-
-template <typename A>
-STML<A>
-    readTVarT(const TVar<A>& tvar)
-{
-    ReadTVar<A, STML<A>> n;
-    n.tvar = tvar;
-    n.next = [](const A& val) {
-        return pureF(val);
-    };
-    return wrapT(n);
-}
-
-
-template <typename A>
-STML<fp::Unit>
-    writeTVarT(const TVar<A>& tvar, const A& val)
-{
-    WriteTVar<A, STML<fp::Unit>> n;
-    n.tvar = tvar;
-    n.val  = val;
-    n.next = [](const fp::Unit& unit) {
-        return pureF(unit);
-    };
-    return wrapT(n);
 }
 
 } // namespace stm

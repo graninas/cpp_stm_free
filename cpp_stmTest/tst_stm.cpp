@@ -70,7 +70,7 @@ void STMTest::stupidGuidTest()
 void STMTest::visitorTest()
 {
     stm::STML<int>                 a1 = stm::pureF(10);
-    stm::STML<stm::TVar<std::any>> a2 = stm::newTVar(10);
+    stm::STML<stm::TVar<std::any>> a2 = stm::newTVarA(10);
 
     stm::Context context1;
     auto ustamp1 = context1.newGUID();
@@ -110,10 +110,10 @@ void STMTest::bind2Test()
     std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
             [](const stm::TVar<std::any>& tvar)
     {
-        return stm::readTVar(tvar);
+        return stm::readTVarA(tvar);
     };
 
-    auto x = stm::newTVar(10);
+    auto x = stm::newTVarA(10);
 
     stm::STML<std::any> s = stm::bind(x, f);
 
@@ -133,7 +133,7 @@ void STMTest::bindRetryTest()
         return stm::retry<stm::TVar<std::any>>();
     };
 
-    auto x = stm::newTVar(10);
+    auto x = stm::newTVarA(10);
     auto s = stm::bind(x, f);
 
     stm::Context context;
@@ -157,10 +157,10 @@ void STMTest::atomicallyTest()
     std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
             [](const stm::TVar<std::any>& tvar)
     {
-        return stm::readTVar(tvar);
+        return stm::readTVarA(tvar);
     };
 
-    auto x = stm::newTVar(10);
+    auto x = stm::newTVarA(10);
 
     stm::STML<std::any> s = stm::bind(x, f);
 
@@ -177,13 +177,13 @@ void STMTest::coercingTest()
     std::function<STMLInt(TVarInt)> f1 =
             [](const TVarInt& tvar)
     {
-        return stm::readTVarT(tvar);
+        return stm::readTVar(tvar);
     };
 
     std::function<stm::STML<fp::Unit>(TVarInt)> f2 =
             [](const TVarInt& tvar)
     {
-        return stm::writeTVarT(tvar, 20);
+        return stm::writeTVar(tvar, 20);
     };
 
     std::function<stm::STML<fp::Unit>(TVarInt)> f3 =
@@ -192,7 +192,7 @@ void STMTest::coercingTest()
         return stm::retry<fp::Unit>();
     };
 
-    stm::STML<TVarInt>  m1 = stm::newTVarT(10);
+    stm::STML<TVarInt>  m1 = stm::newTVar(10);
     stm::STML<int>      m2 = stm::bind(m1, f1);
     stm::STML<fp::Unit> x1 = stm::bind(m1, f2);
     stm::STML<fp::Unit> y1 = stm::bind(m1, f3);
