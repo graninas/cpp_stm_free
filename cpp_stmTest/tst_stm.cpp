@@ -30,7 +30,9 @@ private Q_SLOTS:
 //    void coercingTest();
 
     void stmlChainTest();
-    void combinatorsTest();
+    void bothCombinatorTest();
+    void bothTVarsCombinatorTest();
+    void bothVoidedCombinatorTest();
 };
 
 STMTest::STMTest()
@@ -38,6 +40,7 @@ STMTest::STMTest()
 }
 
 using TVarInt = stm::TVar<int>;
+using TVarStr = stm::TVar<std::string>;
 
 template <typename A>
 A run(const stm::STML<A>& stml)
@@ -201,24 +204,60 @@ void STMTest::stmlChainTest()
 {
     using namespace stm;
 
-    STML<TVarInt> m1 = newTVar(10);
-    STML<TVarInt> m2 = stm::bind<TVarInt, TVarInt>(m1, [](const auto& tvar)
+    auto m1 = newTVar(10);
+    auto m2 = stm::bind<TVarInt, TVarInt>(m1, [](const auto& tvar)
     {
-        STML<fp::Unit> mm1 = writeTVar(tvar, 20);
-        STML<TVarInt>  r   = pure(tvar);
-        STML<TVarInt>  mm2 = voided(mm1, r);
-        return mm2;
+        auto mm1 = writeTVar(tvar, 20);
+        return voided(mm1, pure(tvar));
     });
     auto m3 = stm::bind<TVarInt, int>(m2, readTVar);
 
-    std::cout << "\n\n";
     int  result = run(m3);
     QVERIFY(result == 20);
 }
 
-void STMTest::combinatorsTest()
+void STMTest::bothCombinatorTest()
 {
+    using namespace stm;
 
+    auto mResult = both<int, std::string, std::string>
+            (pure(10),
+             pure(std::string("abc")),
+             [](int i, const std::string& s)
+    {
+        return std::to_string(i) + s;
+    });
+
+    auto result = run(mResult);
+    QVERIFY(result == std::string("10abc"));
+}
+
+void STMTest::bothTVarsCombinatorTest()
+{
+    using namespace stm;
+
+    auto mResult = bothTVars<int, std::string, std::string>
+            (newTVar(10),
+             newTVar(std::string("abc")),
+             [](int i, const std::string& s)
+    {
+        return std::to_string(i) + s;
+    });
+
+    auto result = run(mResult);
+    QVERIFY(result == std::string("10abc"));
+}
+
+void STMTest::bothVoidedCombinatorTest()
+{
+    using namespace stm;
+
+    auto mResult = bothVoided<int, std::string>
+            (pure(10),
+             pure(std::string("abc")));
+
+    fp::Unit result = run(mResult);
+    Q_UNUSED(result);
 }
 
 QTEST_APPLESS_MAIN(STMTest)

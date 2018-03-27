@@ -89,8 +89,8 @@ STML<Ret> both(const STML<A>& ma,
                const STML<B>& mb,
                const std::function<Ret(A, B)>& f)
 {
-    return bind(ma, [=](const A& a){
-        return bind(mb, [=](const B& b){
+    return free::bind<A, Ret>(ma, [=](const A& a){
+        return free::bind<B, Ret>(mb, [=](const B& b){
             return pure(f(a, b));
         });
     });
@@ -101,11 +101,22 @@ STML<fp::Unit>
 bothVoided(const STML<A>& ma,
            const STML<B>& mb)
 {
-    return bind(ma, [=](const A&){
-        return bind(mb, [](const B&){
-            return pure(fp::unit);
-        });
+    return both<A, B, fp::Unit>(ma, mb, [](const A&, const B&)
+    {
+        return fp::unit;
     });
+}
+
+// TODO: replace by var args.
+template <typename A, typename B, typename Ret>
+STML<Ret> bothTVars(
+        const STML<TVar<A>>& ma,
+        const STML<TVar<B>>& mb,
+        const std::function<Ret(A, B)>& f)
+{
+    return both<A, B>(free::bind<TVar<A>, A>(ma, readTVar),
+                      free::bind<TVar<B>, B>(mb, readTVar),
+                      f);
 }
 
 template <typename A, typename B>
