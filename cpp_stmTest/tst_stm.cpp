@@ -29,7 +29,7 @@ private Q_SLOTS:
     void atomicallyTest();
     void coercingTest();
 
-    void stmlChainTest();
+    void sequenceCombinatorTest();
     void whenCombinatorTest();
     void unlessCombinatorTest();
     void bothCombinatorTest();
@@ -202,7 +202,7 @@ void STMTest::coercingTest()
     QVERIFY(result1 == 10);
 }
 
-void STMTest::stmlChainTest()
+void STMTest::sequenceCombinatorTest()
 {
     using namespace stm;
 
