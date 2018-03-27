@@ -6,13 +6,10 @@
 
 #include "common.h"
 #include "stupid_guid.h"
-#include "fork.h"
 #include "stm_free.h"
 #include "stm_bind.h"
 #include "stm_interpreter.h"
 #include "stm.h"
-
-using namespace sample;
 
 class STMTest : public QObject
 {

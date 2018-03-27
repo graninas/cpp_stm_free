@@ -29,8 +29,7 @@ HEADERS += \
     stm_bind.h \
     stm_fmap.h \
     stm.h \
-    stm_runtime.h \
-    stm_stmlr.h
+    stm_runtime.h
 
 unix {
     target.path = /usr/lib

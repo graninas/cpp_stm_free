@@ -27,12 +27,7 @@ SOURCES += \
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
-    person.h \
-    address.h \
     common.h \
-    car.h \
-    account.h \
-    fork.h \
     monad_syntax_experiments.h
 
 

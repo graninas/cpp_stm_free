@@ -29,7 +29,12 @@ const auto readTVar = [](const auto& tvar)
     return free::readTVar(tvar);
 };
 
-const auto writeTVar = [](const auto& tvar)
+const auto writeTVar = [](const auto& tvar, const auto& val)
+{
+    return free::writeTVar(tvar, val);
+};
+
+const auto writeTVarT = [](const auto& tvar)
 {
     return [&](const auto& val)
     {
@@ -45,13 +50,22 @@ const auto writeTVarV = [](const auto& val)
     };
 };
 
-const auto modifyTVarV = [](const auto& tvar, const auto& f)
+const auto modifyTVar = [](const auto& tvar, const auto& f)
 {
     auto m = free::readTVar(tvar);
-    return free::bind(m, [=](const auto& val)
+    return free::writeTVar(tvar, f(val));
+};
+
+const auto modifyTVarT = [](const auto& tvar)
+{
+    return [&](const auto& f)
     {
-        return free::writeTVar(tvar, f(val));
-    } );
+        auto m = free::readTVar(tvar);
+        return free::bind(m, [=](const auto& val)
+        {
+            return free::writeTVar(tvar, f(val));
+        } );
+    };
 };
 
 const auto retry = [](const auto&)
@@ -94,10 +108,24 @@ bothVoided(const STML<A>& ma,
     });
 }
 
-const auto voided = [](const auto& ma)
+const auto voided = [](const auto& ma, const auto& mb)
 {
-    return bind(ma, [](const auto&) {
-        return pure(fp::unit);
+    return bind(ma, [](auto) {
+        return mb;
+    });
+};
+
+const auto when = [](const STML<bool>& ma, const auto& mb)
+{
+    return bind(ma, [&](bool cond) {
+        return cond ? mb : pure(fp::unit);
+    });
+};
+
+const auto unless = [](const STML<bool>& ma, const auto& mb)
+{
+    return bind(ma, [&](bool cond) {
+        return cond ? pure(fp::unit) : mb;
     });
 };
 
