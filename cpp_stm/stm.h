@@ -84,6 +84,12 @@ STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
     return free::bind(ma, f);
 }
 
+template <typename A>
+STML<fp::Unit> voided(const STML<A>& ma)
+{
+    return free::bind<A, fp::Unit>(ma, [](const A&) { return pure(fp::unit); });
+}
+
 template <typename A, typename B, typename Ret>
 STML<Ret> both(const STML<A>& ma,
                const STML<B>& mb,
@@ -97,9 +103,8 @@ STML<Ret> both(const STML<A>& ma,
 }
 
 template <typename A, typename B>
-STML<fp::Unit>
-bothVoided(const STML<A>& ma,
-           const STML<B>& mb)
+STML<fp::Unit> bothVoided(const STML<A>& ma,
+                          const STML<B>& mb)
 {
     return both<A, B, fp::Unit>(ma, mb, [](const A&, const B&)
     {
@@ -120,24 +125,29 @@ STML<Ret> bothTVars(
 }
 
 template <typename A, typename B>
-STML<B> voided(const STML<A> ma, const STML<B>& mb)
+STML<B> sequence(const STML<A> ma, const STML<B>& mb)
 {
-    return free::bind<A, B>(ma, [=](const A&) {
-                return mb;
-            });
+    return both<A, B, B>(ma, mb, [](const A&, const B& b)
+    {
+        return b;
+    });
 }
 
 const auto when = [](const STML<bool>& ma, const auto& mb)
 {
-    return bind(ma, [=](bool cond) {
-        return cond ? mb : pure(fp::unit);
+    return free::bind<bool, fp::Unit>(ma, [=](bool cond) {
+        return cond
+                ? voided(mb)
+                : pure(fp::unit);
     });
 };
 
 const auto unless = [](const STML<bool>& ma, const auto& mb)
 {
-    return bind(ma, [=](bool cond) {
-        return cond ? pure(fp::unit) : mb;
+    return free::bind<bool, fp::Unit>(ma, [=](bool cond) {
+        return cond
+                ? pure(fp::unit)
+                : voided(mb);
     });
 };
 
