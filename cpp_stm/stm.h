@@ -53,7 +53,7 @@ const auto writeTVarV = [](const auto& val)
 const auto modifyTVar = [](const auto& tvar, const auto& f)
 {
     auto m = free::readTVar(tvar);
-    return free::writeTVar(tvar, f(val));
+    return bind(m, writeTVarT(tvar));
 };
 
 const auto modifyTVarT = [](const auto& tvar)
@@ -101,30 +101,31 @@ STML<fp::Unit>
 bothVoided(const STML<A>& ma,
            const STML<B>& mb)
 {
-    return bind(ma, [&](const A&){
+    return bind(ma, [=](const A&){
         return bind(mb, [](const B&){
             return pure(fp::unit);
         });
     });
 }
 
-const auto voided = [](const auto& ma, const auto& mb)
+template <typename A, typename B>
+STML<B> voided(const STML<A> ma, const STML<B>& mb)
 {
-    return bind(ma, [](auto) {
-        return mb;
-    });
-};
+    return free::bind<A, B>(ma, [=](const A&) {
+                return mb;
+            });
+}
 
 const auto when = [](const STML<bool>& ma, const auto& mb)
 {
-    return bind(ma, [&](bool cond) {
+    return bind(ma, [=](bool cond) {
         return cond ? mb : pure(fp::unit);
     });
 };
 
 const auto unless = [](const STML<bool>& ma, const auto& mb)
 {
-    return bind(ma, [&](bool cond) {
+    return bind(ma, [=](bool cond) {
         return cond ? pure(fp::unit) : mb;
     });
 };

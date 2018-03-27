@@ -160,6 +160,7 @@ Ret unPureF(const PureF<Ret>& p)
 template <typename Ret>
 struct STML
 {
+    using RetT = Ret;
     std::variant<PureF<Ret>, FreeF<Ret>> stml;
 };
 
