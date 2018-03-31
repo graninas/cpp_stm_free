@@ -128,7 +128,7 @@ struct BindStmlVisitor
 };
 
 template <typename A, typename B>
-STML<B> bind(const STML<A> ma, const ArrowFunc<A, B>& f)
+STML<B> bindFree(const STML<A> ma, const ArrowFunc<A, B>& f)
 {
     BindStmlVisitor<A, B> visitor(f);
     std::visit(visitor, ma.stml);

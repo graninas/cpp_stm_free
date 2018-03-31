@@ -1,6 +1,8 @@
 #ifndef STM_H
 #define STM_H
 
+#include <tuple>
+
 #include "context.h"
 #include "stm_runtime.h"
 #include "stm_free.h"
@@ -19,10 +21,22 @@ A atomically(Context& context, const STML<A>& stml)
     return runSTM(context, stml);
 }
 
+template <typename A, typename B>
+STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
+{
+    return free::bindFree(ma, f);
+}
+
 const auto newTVar = [](const auto& val)
 {
     return free::newTVar(val);
 };
+
+template <typename A>
+TVar<A> newTVarIO(Context& context, const A& val)
+{
+    return atomically(context, free::newTVar<A>(val));
+}
 
 const auto readTVar = [](const auto& tvar)
 {
@@ -53,7 +67,10 @@ const auto writeTVarV = [](const auto& val)
 const auto modifyTVar = [](const auto& tvar, const auto& f)
 {
     auto m = free::readTVar(tvar);
-    return bind(m, writeTVarT(tvar));
+    return bind(m, [=](const auto& val)
+    {
+        return writeTVar(tvar, f(val));
+    });
 };
 
 const auto modifyTVarT = [](const auto& tvar)
@@ -61,10 +78,10 @@ const auto modifyTVarT = [](const auto& tvar)
     return [&](const auto& f)
     {
         auto m = free::readTVar(tvar);
-        return free::bind(m, [=](const auto& val)
+        return bind(m, [=](const auto& val)
         {
             return free::writeTVar(tvar, f(val));
-        } );
+        });
     };
 };
 
@@ -78,16 +95,10 @@ const auto pure = [](const auto& a)
     return free::pureF(a);
 };
 
-template <typename A, typename B>
-STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
-{
-    return free::bind(ma, f);
-}
-
 template <typename A>
 STML<fp::Unit> voided(const STML<A>& ma)
 {
-    return free::bind<A, fp::Unit>(ma, [](const A&) { return pure(fp::unit); });
+    return bind<A, fp::Unit>(ma, [](const A&) { return pure(fp::unit); });
 }
 
 template <typename A, typename B, typename Ret>
@@ -95,8 +106,8 @@ STML<Ret> both(const STML<A>& ma,
                const STML<B>& mb,
                const std::function<Ret(A, B)>& f)
 {
-    return free::bind<A, Ret>(ma, [=](const A& a){
-        return free::bind<B, Ret>(mb, [=](const B& b){
+    return bind<A, Ret>(ma, [=](const A& a){
+        return bind<B, Ret>(mb, [=](const B& b){
             return pure(f(a, b));
         });
     });
@@ -119,10 +130,34 @@ STML<Ret> bothTVars(
         const STML<TVar<B>>& mb,
         const std::function<Ret(A, B)>& f)
 {
-    return both<A, B>(free::bind<TVar<A>, A>(ma, readTVar),
-                      free::bind<TVar<B>, B>(mb, readTVar),
+    return both<A, B>(bind<TVar<A>, A>(ma, readTVar),
+                      bind<TVar<B>, B>(mb, readTVar),
                       f);
 }
+
+//template <typename A>
+//STML<std::tuple<A>> readMany(const TVar<A>& tvar)
+//{
+//    STML<A> ma = readTVar(tvar);
+//    return stm::bind<A, std::tuple<A>>(ma, [](const A& a)
+//    {
+//        return pure(std::make_tuple(a));
+//    });
+//}
+
+//template <typename A, typename... Tail>
+//STML<std::tuple<Tail>> readMany(const TVar<A>& tvar, Tail... tailTVars)
+//{
+//    STML<std::tuple<Tail...> mTail = readMany<Tail...>(tailTVars);
+//    return stm::bind(mTail, [=](const std::tuple<Tail...>& tail)
+//    {
+//        STML<A> ma = readTVar(tvar);
+//        return stm::bind<A, std::tuple<Tail...>>(ma, [=](const A& a)
+//        {
+//            return stm::pure(std::make_tuple(a, std::tie(tail)));
+//        });
+//    });
+//}
 
 template <typename A, typename B>
 STML<B> sequence(const STML<A> ma, const STML<B>& mb)
@@ -135,7 +170,7 @@ STML<B> sequence(const STML<A> ma, const STML<B>& mb)
 
 const auto when = [](const STML<bool>& ma, const auto& mb)
 {
-    return free::bind<bool, fp::Unit>(ma, [=](bool cond) {
+    return bind<bool, fp::Unit>(ma, [=](bool cond) {
         return cond
                 ? voided(mb)
                 : pure(fp::unit);
@@ -144,7 +179,7 @@ const auto when = [](const STML<bool>& ma, const auto& mb)
 
 const auto unless = [](const STML<bool>& ma, const auto& mb)
 {
-    return free::bind<bool, fp::Unit>(ma, [=](bool cond) {
+    return bind<bool, fp::Unit>(ma, [=](bool cond) {
         return cond
                 ? pure(fp::unit)
                 : voided(mb);
