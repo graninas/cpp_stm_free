@@ -44,7 +44,7 @@ struct BindStmfVisitor
 
     void operator()(const NewTVarA<STML<A>>& fa)
     {
-        std::cout << "\nBind: NewTVarA";
+//        std::cout << "\nBind: NewTVarA";
 
         ArrowFunc<A,B> f = fTemplate;
         NewTVarA<STML<B>> fb;
@@ -59,7 +59,7 @@ struct BindStmfVisitor
 
     void operator()(const ReadTVarA<STML<A>>& fa)
     {
-        std::cout << "\nBind: ReadTVarA.";
+//        std::cout << "\nBind: ReadTVarA.";
 
         ArrowFunc<A,B> f = fTemplate;
         ReadTVarA<STML<B>> fb;
@@ -74,7 +74,7 @@ struct BindStmfVisitor
 
     void operator()(const WriteTVarA<STML<A>>& fa)
     {
-        std::cout << "\nBind: WriteTVarA.";
+//        std::cout << "\nBind: WriteTVarA.";
 
         ArrowFunc<A,B> f = fTemplate;
         WriteTVarA<STML<B>> fb;
@@ -90,7 +90,7 @@ struct BindStmfVisitor
 
     void operator()(const RetryA<STML<A>>&)
     {
-        std::cout << "\nBind: RetryA.";
+//        std::cout << "\nBind: RetryA.";
 
         RetryA<STML<B>> fb;
         result.stmf = fb;
@@ -109,7 +109,7 @@ struct BindStmlVisitor
 
     void operator()(const PureF<A>& fa)
     {
-        std::cout << "\nBind: PureF";
+//        std::cout << "\nBind: PureF";
 
         ArrowFunc<A,B> f = fTemplate;
         result = f(fa.ret);
@@ -117,7 +117,7 @@ struct BindStmlVisitor
 
     void operator()(const FreeF<A>& fa)
     {
-        std::cout << "\nBind: FreeF";
+//        std::cout << "\nBind: FreeF";
 
         ArrowFunc<A,B> f = fTemplate;
         BindStmfVisitor<A, B> visitor(f);

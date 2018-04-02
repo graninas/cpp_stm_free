@@ -35,6 +35,7 @@ private Q_SLOTS:
     void bothCombinatorTest();
     void bothTVarsCombinatorTest();
     void bothVoidedCombinatorTest();
+    void modifyTVarTest();
 };
 
 STMTest::STMTest()
@@ -189,7 +190,7 @@ void STMTest::coercingTest()
     stm::STML<TVarInt>  m1 = stm::newTVar(10);
     stm::STML<int>      m2 = stm::bind<TVarInt, int>     (m1, stm::readTVar);
     stm::STML<fp::Unit> x1 = stm::bind<TVarInt, fp::Unit>(m1, stm::writeTVarV(20));
-    stm::STML<fp::Unit> y1 = stm::bind<TVarInt, fp::Unit>(m1, stm::retry);
+    stm::STML<fp::Unit> y1 = stm::sequence<TVarInt, fp::Unit>(m1, stm::mRetry);
 
     stm::Context context;
     int  result1 = stm::atomically(context, m2);
@@ -312,6 +313,26 @@ void STMTest::bothVoidedCombinatorTest()
 
     fp::Unit result = run(mResult);
     Q_UNUSED(result);
+}
+
+void STMTest::modifyTVarTest()
+{
+    using namespace stm;
+
+    std::function<int(int)> f = [](int i) { return i + 5; };
+
+    auto m1 = newTVar(10);
+    auto mResult = bind<TVar<int>, int>(m1, [=](auto tvar)
+    {
+        auto m3 = modifyTVar(tvar, f);
+        return bind<fp::Unit, int>(m3, [=](const auto&)
+        {
+            return readTVar(tvar);
+        });
+    });
+
+    auto result = run(mResult);
+    QVERIFY(result == 15);
 }
 
 QTEST_APPLESS_MAIN(STMTest)

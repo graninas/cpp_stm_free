@@ -64,14 +64,16 @@ const auto writeTVarV = [](const auto& val)
     };
 };
 
-const auto modifyTVar = [](const auto& tvar, const auto& f)
+template <typename A>
+const STML<fp::Unit>
+modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
 {
-    auto m = free::readTVar(tvar);
-    return bind(m, [=](const auto& val)
+    auto m = readTVar(tvar);
+    return bind<A, fp::Unit>(m, [=](const A& i)
     {
-        return writeTVar(tvar, f(val));
+        return writeTVar(tvar, f(i));
     });
-};
+}
 
 const auto modifyTVarT = [](const auto& tvar)
 {
@@ -85,10 +87,18 @@ const auto modifyTVarT = [](const auto& tvar)
     };
 };
 
-const auto retry = [](const auto&)
+template <typename A>
+STML<A> retry(const A&)
+{
+    return free::retry<A>();
+}
+
+const auto retryF = [](const auto&)
 {
     return free::retry<fp::Unit>();
 };
+
+const STML<fp::Unit> mRetry = free::retry<fp::Unit>();
 
 const auto pure = [](const auto& a)
 {
@@ -168,23 +178,25 @@ STML<B> sequence(const STML<A> ma, const STML<B>& mb)
     });
 }
 
-const auto when = [](const STML<bool>& ma, const auto& mb)
+template <typename B>
+STML<fp::Unit> when(const STML<bool>& ma, const STML<B>& mb)
 {
     return bind<bool, fp::Unit>(ma, [=](bool cond) {
         return cond
-                ? voided(mb)
+                ? voided<B>(mb)
                 : pure(fp::unit);
     });
-};
+}
 
-const auto unless = [](const STML<bool>& ma, const auto& mb)
+template <typename B>
+STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
 {
     return bind<bool, fp::Unit>(ma, [=](bool cond) {
         return cond
                 ? pure(fp::unit)
-                : voided(mb);
+                : voided<B>(mb);
     });
-};
+}
 
 } // namespace stm
 
