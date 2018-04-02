@@ -17,7 +17,7 @@ template <typename A>
 A runSTM(Context& context, const STML<A>& stml)
 {
     std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(1, 5);
+    std::uniform_int_distribution<int> distribution(1, 100);
     auto backoffIntervalDice = std::bind(distribution, generator);
 
     while (true)
@@ -29,9 +29,9 @@ A runSTM(Context& context, const STML<A>& stml)
 
         if (runResult.retry)
         {
-            auto secs = backoffIntervalDice();
-//            std::cout << "Retry after: " << secs << " seconds." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(secs));
+            auto t = backoffIntervalDice();
+//            std::cout << "Retry after: " << t * 10 << " milliseconds." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(t * 10));
             continue;
         }
 

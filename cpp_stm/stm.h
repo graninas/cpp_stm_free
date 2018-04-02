@@ -13,6 +13,9 @@
 namespace stm
 {
 
+// TODO: optimal random time backoff
+// TODO: notifications instead of time wait
+
 template <typename A>
 using STML = free::STML<A>;
 
@@ -73,6 +76,18 @@ modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
     return bind<A, fp::Unit>(m, [=](const A& i)
     {
         return writeTVar(tvar, f(i));
+    });
+}
+
+template <typename A>
+const STML<A>
+modifyTVarRet(const TVar<A>& tvar, const std::function<A(A)>& f)
+{
+    auto m = readTVar(tvar);
+    return bind<A, fp::Unit>(m, [=](const A& i)
+    {
+        auto newResult = f(i);
+        return sequence(writeTVar(tvar, newResult), pure(newResult));
     });
 }
 
@@ -179,20 +194,27 @@ STML<B> sequence(const STML<A> ma, const STML<B>& mb)
     });
 }
 
-template <typename A>
-STML<A> conditional(const STML<bool>& m,
-                    const STML<A>& mOnTrue,
-                    const STML<A>& mOnFalse)
+template <typename A, typename B>
+STML<B> ifThenElse(const STML<A>& m,
+                   const STML<B>& mOnTrue,
+                   const STML<B>& mOnFalse,
+                   const std::function<bool(A)>& condF)
 {
-    return bind<bool, fp::Unit>(m, [=](bool cond) {
-//        std::cout << "conditional cond: " << cond << std::endl;
-        return cond
-                ? mOnTrue
-                : mOnFalse;
+    return bind<A, B>(m, [=](const A& a) {
+//        std::cout << "conditional cond: " << condF(a) << std::endl;
+        return condF(a) ? mOnTrue : mOnFalse;
     });
 }
 
-// Use these combinators with care. Prefer conditional instead of both when and unless.
+template <typename B>
+STML<B> ifThenElse(const STML<bool>& m,
+                   const STML<B>& mOnTrue,
+                   const STML<B>& mOnFalse)
+{
+    return ifThenElse<bool, B>(m, mOnTrue, mOnFalse, fp::id);
+}
+
+// Use these combinators with care. Prefer ifThenElse instead of both when and unless.
 template <typename B>
 STML<fp::Unit> when(const STML<bool>& ma, const STML<B>& mb)
 {
@@ -214,6 +236,11 @@ STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
                 : voided<B>(mb);
     });
 }
+
+//const auto writeTVarRet = [](const auto& tvar, const auto& val)
+//{
+//    return sequence(writeTVar(tvar, val), readTVar(tvar));
+//};
 
 } // namespace stm
 
