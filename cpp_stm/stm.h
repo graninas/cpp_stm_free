@@ -161,30 +161,6 @@ STML<Ret> bothTVars(
                       f);
 }
 
-//template <typename A>
-//STML<std::tuple<A>> readMany(const TVar<A>& tvar)
-//{
-//    STML<A> ma = readTVar(tvar);
-//    return stm::bind<A, std::tuple<A>>(ma, [](const A& a)
-//    {
-//        return pure(std::make_tuple(a));
-//    });
-//}
-
-//template <typename A, typename... Tail>
-//STML<std::tuple<Tail>> readMany(const TVar<A>& tvar, Tail... tailTVars)
-//{
-//    STML<std::tuple<Tail...> mTail = readMany<Tail...>(tailTVars);
-//    return stm::bind(mTail, [=](const std::tuple<Tail...>& tail)
-//    {
-//        STML<A> ma = readTVar(tvar);
-//        return stm::bind<A, std::tuple<Tail...>>(ma, [=](const A& a)
-//        {
-//            return stm::pure(std::make_tuple(a, std::tie(tail)));
-//        });
-//    });
-//}
-
 template <typename A, typename B>
 STML<B> sequence(const STML<A> ma, const STML<B>& mb)
 {
@@ -236,11 +212,6 @@ STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
                 : voided<B>(mb);
     });
 }
-
-//const auto writeTVarRet = [](const auto& tvar, const auto& val)
-//{
-//    return sequence(writeTVar(tvar, val), readTVar(tvar));
-//};
 
 } // namespace stm
 

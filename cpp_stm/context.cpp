@@ -38,26 +38,6 @@ TVarId Context::newGUID()
     return guid;
 }
 
-//tryCommit :: Context -> UStamp -> TVars -> IO Bool
-//tryCommit (Context mtvars) ustamp stagedTVars = do
-//  tvars <- takeMVar mtvars
-
-//  let conflict = Map.foldMapWithKey (f tvars "") stagedTVars
-//  let newTVars = Map.unionWith (merge ustamp) stagedTVars tvars
-
-//  putMVar mtvars $ if null conflict then newTVars else tvars
-
-//  pure $ null conflict
-
-//  where
-//    f :: TVars -> String -> TVarId -> TVarHandle -> String
-//    f origTvars acc tvarId (TVarHandle stagedUS _) = case Map.lookup tvarId origTvars of
-//      Nothing                                         -> acc
-//      Just (TVarHandle origUS _) | origUS == stagedUS -> acc
-//                                 | otherwise          -> acc ++ " " ++ show tvarId
-//    merge :: UStamp -> TVarHandle -> TVarHandle -> TVarHandle
-//    merge us' (TVarHandle _ d) _ = TVarHandle us' d
-
 bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
 {
     takeLock();
