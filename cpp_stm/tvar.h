@@ -1,6 +1,7 @@
 #ifndef TVAR_H
 #define TVAR_H
 
+#include <string>
 #include <functional>
 
 #include "stupid_guid.h"
@@ -13,6 +14,7 @@ using TVarId = utils::GUID;
 template <typename T>
 struct TVar
 {
+    std::string name;
     TVarId id;
 };
 

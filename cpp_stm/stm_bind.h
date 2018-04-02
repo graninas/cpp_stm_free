@@ -49,6 +49,7 @@ struct BindStmfVisitor
         ArrowFunc<A,B> f = fTemplate;
         NewTVarA<STML<B>> fb;
         fb.val = fa.val;
+        fb.name = fa.name;
         fb.next = [=](const TVarAny& tvar)
         {
             STML<A> nextA = fa.next(tvar);

@@ -46,6 +46,7 @@ template <typename A, typename Next>
 struct NewTVar
 {
     A val;
+    std::string name;
     std::function<Next(TVar<A>)> next;
 
     NewTVar<Any, Next> toAny() const
@@ -54,10 +55,12 @@ struct NewTVar
 
         NewTVar<Any, Next> m;
         m.val = val;
+        m.name = name;
         m.next = [=](const TVarAny& tvarAny)
         {
             TVar<A> tvar;
             tvar.id = tvarAny.id;
+            tvar.name = tvarAny.name;
             return nextCopy(tvar);
         };
         return m;
@@ -78,6 +81,7 @@ struct ReadTVar
         std::function<Next(A)> nextCopy = next;
         TVar<Any> tvar2;
         tvar2.id = tvar.id;
+        tvar2.name = tvar.name;
 
         ReadTVar<Any, Next> m;
         m.tvar = tvar2;
@@ -105,6 +109,7 @@ struct WriteTVar
         std::function<Next(fp::Unit)> nextCopy = next;
         TVar<Any> tvar2;
         tvar2.id = tvar.id;
+        tvar2.name = tvar.name;
 
         WriteTVar<Any, Next> m;
         m.tvar = tvar2;
@@ -189,10 +194,11 @@ STML<Ret>
 }
 
 STML<TVarAny>
-    newTVarA(const Any& val)
+    newTVarA(const Any& val, const std::string& name = "")
 {
     NewTVarA<STML<TVarAny>> n;
     n.val = val;
+    n.name = name;
     n.next = [](const TVarAny& tvar) {
         return pureF(tvar);
     };
@@ -245,10 +251,11 @@ STML<Ret>
 
 template <typename A>
 STML<TVar<A>>
-    newTVar(const A& val)
+    newTVar(const A& val, const std::string& name = "")
 {
     NewTVar<A, STML<TVar<A>>> n;
     n.val = val;
+    n.name = name;
     n.next = [](const TVar<A>& tvar) {
         return pureF(tvar);
     };

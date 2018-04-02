@@ -2,6 +2,7 @@
 #define STM_H
 
 #include <tuple>
+#include <iostream>
 
 #include "context.h"
 #include "stm_runtime.h"
@@ -27,15 +28,15 @@ STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
     return free::bindFree(ma, f);
 }
 
-const auto newTVar = [](const auto& val)
+const auto newTVar = [](const auto& val, const std::string& name = "")
 {
-    return free::newTVar(val);
+    return free::newTVar(val, name);
 };
 
 template <typename A>
-TVar<A> newTVarIO(Context& context, const A& val)
+TVar<A> newTVarIO(Context& context, const A& val, const std::string& name = "")
 {
-    return atomically(context, free::newTVar<A>(val));
+    return atomically(context, free::newTVar<A>(val, name));
 }
 
 const auto readTVar = [](const auto& tvar)
@@ -178,10 +179,25 @@ STML<B> sequence(const STML<A> ma, const STML<B>& mb)
     });
 }
 
+template <typename A>
+STML<A> conditional(const STML<bool>& m,
+                    const STML<A>& mOnTrue,
+                    const STML<A>& mOnFalse)
+{
+    return bind<bool, fp::Unit>(m, [=](bool cond) {
+//        std::cout << "conditional cond: " << cond << std::endl;
+        return cond
+                ? mOnTrue
+                : mOnFalse;
+    });
+}
+
+// Use these combinators with care. Prefer conditional instead of both when and unless.
 template <typename B>
 STML<fp::Unit> when(const STML<bool>& ma, const STML<B>& mb)
 {
     return bind<bool, fp::Unit>(ma, [=](bool cond) {
+//        std::cout << "when cond: " << cond << std::endl;
         return cond
                 ? voided<B>(mb)
                 : pure(fp::unit);
@@ -192,6 +208,7 @@ template <typename B>
 STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
 {
     return bind<bool, fp::Unit>(ma, [=](bool cond) {
+//        std::cout << "unless cond: " << cond << std::endl;
         return cond
                 ? pure(fp::unit)
                 : voided<B>(mb);

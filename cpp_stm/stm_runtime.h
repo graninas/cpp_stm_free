@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 #include "context.h"
 #include "stm_interpreter.h"
@@ -16,7 +17,7 @@ template <typename A>
 A runSTM(Context& context, const STML<A>& stml)
 {
     std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(500, 500000);
+    std::uniform_int_distribution<int> distribution(1, 5);
     auto backoffIntervalDice = std::bind(distribution, generator);
 
     while (true)
@@ -27,16 +28,18 @@ A runSTM(Context& context, const STML<A>& stml)
         RunResult<A> runResult = runSTML<A, StmlVisitor>(runtime, stml);
 
         if (runResult.retry)
+        {
+            auto secs = backoffIntervalDice();
+//            std::cout << "Retry after: " << secs << " seconds." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(secs));
             continue;
+        }
 
         bool success = context.tryCommit(ustamp, runtime.getStagedTVars());
         if (success)
         {
             return runResult.result.value();
         }
-
-        std::chrono::microseconds interval(backoffIntervalDice());
-        std::this_thread::sleep_for(interval);
     }
 }
 
