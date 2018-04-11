@@ -165,7 +165,6 @@ Ret unPureF(const PureF<Ret>& p)
 template <typename Ret>
 struct STML
 {
-    using RetT = Ret;
     std::variant<PureF<Ret>, FreeF<Ret>> stml;
 };
 
@@ -236,7 +235,6 @@ STML<AnyRet>
     return wrapA(n);
 }
 
-// Experiments
 template <typename A, typename Ret, template <typename, typename> class Method>
 STML<Ret>
     wrapT(const Method<A, STML<Ret>>& method)

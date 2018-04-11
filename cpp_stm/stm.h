@@ -79,18 +79,6 @@ modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
     });
 }
 
-template <typename A>
-const STML<A>
-modifyTVarRet(const TVar<A>& tvar, const std::function<A(A)>& f)
-{
-    auto m = readTVar(tvar);
-    return bind<A, fp::Unit>(m, [=](const A& i)
-    {
-        auto newResult = f(i);
-        return sequence(writeTVar(tvar, newResult), pure(newResult));
-    });
-}
-
 const auto modifyTVarT = [](const auto& tvar)
 {
     return [&](const auto& f)
@@ -116,10 +104,11 @@ const auto retryF = [](const auto&)
 
 const STML<fp::Unit> mRetry = free::retry<fp::Unit>();
 
-const auto pure = [](const auto& a)
+template <typename A>
+STML<A> pure(const A& a)
 {
     return free::pureF(a);
-};
+}
 
 template <typename A>
 STML<fp::Unit> voided(const STML<A>& ma)
@@ -212,6 +201,18 @@ STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
                 : voided<B>(mb);
     });
 }
+
+template <typename A>
+STML<A> modifyTVarRet(const TVar<A>& tvar, const std::function<A(A)>& f)
+{
+    auto m = readTVar(tvar);
+    return bind<A, A>(m, [=](const A& i)
+    {
+        auto newResult = f(i);
+        return sequence(writeTVar(tvar, newResult), pure(newResult));
+    });
+}
+
 
 } // namespace stm
 
