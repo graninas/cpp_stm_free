@@ -19,11 +19,11 @@ A runSTM(Context& context, const STML<A>& stml)
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 100);
     auto backoffIntervalDice = std::bind(distribution, generator);
+    auto ustamp = context.newGUID();
 
     while (true)
     {
         auto snapshot = context.takeSnapshot();
-        auto ustamp = context.newGUID();
         AtomicRuntime runtime {context, ustamp, snapshot};
         RunResult<A> runResult = runSTML<A, StmlVisitor>(runtime, stml);
 

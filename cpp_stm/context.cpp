@@ -12,35 +12,22 @@ Context::Context()
 {
 }
 
-void Context::takeLock()
-{
-    _lock.lock();
-}
-
-void Context::releaseLock()
-{
-    _lock.unlock();
-}
-
 TVars Context::takeSnapshot()
 {
-    takeLock();
-    auto tvars = _tvars;
-    releaseLock();
+    std::lock_guard g(_lock);
+    TVars tvars = _tvars;
     return tvars;
 }
 
 TVarId Context::newGUID()
 {
-    takeLock();
-    auto guid = utils::newGUID(_dice);
-    releaseLock();
-    return guid;
+    std::lock_guard g(_lock);
+    return utils::newGUID(_dice);
 }
 
 bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
 {
-    takeLock();
+    std::lock_guard g(_lock);
 
     bool conflict = false;
     for (auto it = stagedTvars.begin(); it != stagedTvars.end(); ++it)
@@ -72,7 +59,6 @@ bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
         }
     }
 
-    releaseLock();
     return !conflict;
 }
 

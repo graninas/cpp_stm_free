@@ -188,12 +188,12 @@ void STMTest::atomicallyTest()
 void STMTest::coercingTest()
 {
     stm::STML<TVarInt>  m1 = stm::newTVar(10);
-    stm::STML<int>      m2 = stm::bind<TVarInt, int>     (m1, stm::readTVar);
+    stm::STML<int>      m2 = stm::bind<TVarInt, int>     (m1, stm::mReadTVar);
     stm::STML<fp::Unit> x1 = stm::bind<TVarInt, fp::Unit>(m1, stm::writeTVarV(20));
     stm::STML<fp::Unit> y1 = stm::sequence<TVarInt, fp::Unit>(m1, stm::mRetry);
 
     stm::Context context;
-    int  result1 = stm::atomically(context, m2);
+    int result1 = stm::atomically(context, m2);
 
     stm::atomically(context, x1);
 
@@ -213,7 +213,7 @@ void STMTest::sequenceCombinatorTest()
         auto mm1 = writeTVar(tvar, 20);
         return sequence(mm1, pure(tvar));
     });
-    auto m3 = stm::bind<TVarInt, int>(m2, readTVar);
+    auto m3 = stm::bind<TVarInt, int>(m2, mReadTVar);
 
     int  result = run(m3);
     QVERIFY(result == 20);

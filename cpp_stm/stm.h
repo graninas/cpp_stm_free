@@ -31,10 +31,42 @@ STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
     return free::bindFree(ma, f);
 }
 
-const auto newTVar = [](const auto& val, const std::string& name = "")
+template <typename A>
+STML<A> retry(const A&)
+{
+    return free::retry<A>();
+}
+
+template <typename A>
+STML<fp::Unit> retryF(const A&)
+{
+    return free::retry<fp::Unit>();
+}
+
+template <typename A>
+STML<A> pure(const A& a)
+{
+    return free::pureF(a);
+}
+
+const STML<fp::Unit> mRetry = free::retry<fp::Unit>();
+
+template <typename A, typename Ret>
+STML<Ret> with(
+        const STML<A>& ma,
+        const std::function<Ret(A)>& f)
+{
+    return bind<A, Ret>(ma, [=](const A& a)
+    {
+        return pure(f(a));
+    });
+}
+
+template <typename A>
+STML<TVar<A>> newTVar(const A& val, const std::string& name = "")
 {
     return free::newTVar(val, name);
-};
+}
 
 template <typename A>
 TVar<A> newTVarIO(Context& context, const A& val, const std::string& name = "")
@@ -42,15 +74,22 @@ TVar<A> newTVarIO(Context& context, const A& val, const std::string& name = "")
     return atomically(context, free::newTVar<A>(val, name));
 }
 
-const auto readTVar = [](const auto& tvar)
+template <typename A>
+STML<A> readTVar(const TVar<A>& tvar)
+{
+    return free::readTVar(tvar);
+}
+
+const auto mReadTVar = [](const auto& tvar)
 {
     return free::readTVar(tvar);
 };
 
-const auto writeTVar = [](const auto& tvar, const auto& val)
+template <typename A>
+STML<fp::Unit> writeTVar(const TVar<A>& tvar, const A& val)
 {
     return free::writeTVar(tvar, val);
-};
+}
 
 const auto writeTVarT = [](const auto& tvar)
 {
@@ -68,18 +107,27 @@ const auto writeTVarV = [](const auto& val)
     };
 };
 
+template <typename A, typename Ret>
+STML<Ret> withTVar(
+        const TVar<A>& tVar,
+        const std::function<Ret(A)>& f)
+{
+    return with(readTVar(tVar), f);
+}
+
+
 template <typename A>
 const STML<fp::Unit>
 modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
 {
-    auto m = readTVar(tvar);
-    return bind<A, fp::Unit>(m, [=](const A& i)
+    return bind<A, fp::Unit>(readTVar(tvar), [=](const A& val)
     {
-        return writeTVar(tvar, f(i));
+        return writeTVar(tvar, f(val));
     });
 }
 
-const auto modifyTVarT = [](const auto& tvar)
+template <typename A>
+STML<fp::Unit> modifyTVarT(const TVar<A>& tvar)
 {
     return [&](const auto& f)
     {
@@ -89,25 +137,6 @@ const auto modifyTVarT = [](const auto& tvar)
             return free::writeTVar(tvar, f(val));
         });
     };
-};
-
-template <typename A>
-STML<A> retry(const A&)
-{
-    return free::retry<A>();
-}
-
-const auto retryF = [](const auto&)
-{
-    return free::retry<fp::Unit>();
-};
-
-const STML<fp::Unit> mRetry = free::retry<fp::Unit>();
-
-template <typename A>
-STML<A> pure(const A& a)
-{
-    return free::pureF(a);
 }
 
 template <typename A>
@@ -138,6 +167,7 @@ STML<fp::Unit> bothVoided(const STML<A>& ma,
     });
 }
 
+
 // TODO: replace by var args.
 template <typename A, typename B, typename Ret>
 STML<Ret> bothTVars(
@@ -145,8 +175,8 @@ STML<Ret> bothTVars(
         const STML<TVar<B>>& mb,
         const std::function<Ret(A, B)>& f)
 {
-    return both<A, B>(bind<TVar<A>, A>(ma, readTVar),
-                      bind<TVar<B>, B>(mb, readTVar),
+    return both<A, B>(bind<TVar<A>, A>(ma, mReadTVar),
+                      bind<TVar<B>, B>(mb, mReadTVar),
                       f);
 }
 
@@ -212,7 +242,6 @@ STML<A> modifyTVarRet(const TVar<A>& tvar, const std::function<A(A)>& f)
         return sequence(writeTVar(tvar, newResult), pure(newResult));
     });
 }
-
 
 } // namespace stm
 

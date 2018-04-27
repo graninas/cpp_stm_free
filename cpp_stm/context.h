@@ -35,9 +35,6 @@ private:
 
     std::mutex _lock;
 
-    void takeLock();
-    void releaseLock();
-
 public:
     Context();
 
@@ -71,7 +68,6 @@ public:
 template <typename A>
 struct RunResult
 {
-    // TODO: Either ADT using std::variant approach.
     bool retry;
     std::optional<A> result;
 };
