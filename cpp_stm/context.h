@@ -19,6 +19,7 @@ struct TVarHandle
 {
     UStamp ustamp;
     std::any data;
+    bool modified;
 };
 
 using TVars = std::map<TVarId, TVarHandle>;

@@ -49,7 +49,7 @@ struct StmfVisitor
 
 //        std::cout << "<" << _runtime.getUStamp() << "> NewTVar. GUID: " << tvarId << ", name: " << f.name << std::endl;
 
-        TVarHandle tvarHandle { _runtime.getUStamp(), f.val };
+        TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
         _runtime.addTVarHandle(tvarId, tvarHandle);
         TVarAny tvar { f.name, tvarId };
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));

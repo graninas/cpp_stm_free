@@ -38,10 +38,8 @@ bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
         if (found == _tvars.end())
             continue;
 
-        TVarHandle stagedTVarHandle = it->second;
-        TVarHandle origTVarHandle = found->second;
-
-        if (stagedTVarHandle.ustamp != origTVarHandle.ustamp)
+        // (staged              && (staged            != original            ))
+        if (it->second.modified && (it->second.ustamp != found->second.ustamp))
         {
             conflict = true;
             break;
@@ -52,10 +50,9 @@ bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
     {
         for (auto it = stagedTvars.begin(); it != stagedTvars.end(); ++it)
         {
-            TVarId stagedTVarId = it->first;
-            TVarHandle stagedTVarHandle = it->second;
-            stagedTVarHandle.ustamp = ustamp;
-            _tvars[stagedTVarId] = stagedTVarHandle;
+            _tvars[it->first].data = it->second.data;
+            _tvars[it->first].ustamp = ustamp;
+            _tvars[it->first].modified = false;
         }
     }
 
@@ -100,9 +97,12 @@ TVarHandle AtomicRuntime::getTVarHandle(const TVarId& tvarId) const
     return found->second;
 }
 
-void AtomicRuntime::setTVarHandleData(const TVarId& tvarId, const std::any& data)
+void AtomicRuntime::setTVarHandleData(
+        const TVarId& tvarId,
+        const std::any& data)
 {
     _localTVars[tvarId].data = data;
+    _localTVars[tvarId].modified = true;
 }
 
 } // namespace stm
