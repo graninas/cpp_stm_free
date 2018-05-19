@@ -6,10 +6,9 @@
 #include <variant>
 #include <iostream>
 
-#include <unit.h>
-#include <identity.h>
-
 #include "tvar.h"
+#include "unit.h"
+#include "id.h"
 
 namespace stm
 {
@@ -83,11 +82,11 @@ struct WriteTVar
 {
     TVar<A> tvar;
     A val;
-    std::function<Next(fp::Unit)> next;
+    std::function<Next(Unit)> next;
 
     WriteTVar<Any, Next> toAny() const
     {
-        std::function<Next(fp::Unit)> nextCopy = next;
+        std::function<Next(Unit)> nextCopy = next;
         TVar<Any> tvar2;
         tvar2.id = tvar.id;
         tvar2.name = tvar.name;
@@ -95,7 +94,7 @@ struct WriteTVar
         WriteTVar<Any, Next> m;
         m.tvar = tvar2;
         m.val  = val;
-        m.next = [=](const fp::Unit& unit)
+        m.next = [=](const Unit& unit)
         {
             return nextCopy(unit);
         };

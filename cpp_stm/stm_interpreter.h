@@ -6,9 +6,6 @@
 #include <variant>
 #include <iostream>
 
-#include <unit.h>
-#include <identity.h>
-
 #include "tvar.h"
 #include "stm_free.h"
 #include "context.h"
@@ -70,7 +67,7 @@ struct StmfVisitor
 //        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
         _runtime.setTVarHandleData(f.tvar.id, f.val);
-        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(fp::unit));
+        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(unit));
     }
 
     template <typename A>

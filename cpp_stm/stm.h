@@ -70,23 +70,23 @@ STML<A> readTVar(const TVar<A>& tvar)
 }
 
 template <typename A>
-STML<fp::Unit> writeTVar(const TVar<A>& tvar,
+STML<Unit> writeTVar(const TVar<A>& tvar,
                          const A& val)
 {
-    free::WriteTVar<A, STML<fp::Unit>> n;
+    free::WriteTVar<A, STML<Unit>> n;
     n.tvar = tvar;
     n.val  = val;
-    n.next = [](const fp::Unit& unit) {
+    n.next = [](const Unit& unit) {
         return free::pureF(unit);
     };
     return free::wrapT(n);
 }
 
 template <typename A>
-STML<fp::Unit> modifyTVar(const TVar<A>& tvar,
+STML<Unit> modifyTVar(const TVar<A>& tvar,
                           const std::function<A(A)>& f)
 {
-    return bind<A, fp::Unit>(readTVar(tvar), [=](const A& val)
+    return bind<A, Unit>(readTVar(tvar), [=](const A& val)
     {
         return writeTVar(tvar, f(val));
     });
@@ -114,7 +114,7 @@ TVar<A> newTVarIO(Context& context,
 
 // Monadic values and lambdas (type inference can be better with them).
 
-const STML<fp::Unit> mRetry = retry<fp::Unit>();
+const STML<Unit> mRetry = retry<Unit>();
 
 const auto mPure = [](const auto& val)
 {
@@ -190,12 +190,12 @@ STML<C> both(const STML<A>& ma,
 }
 
 template <typename A, typename B>
-STML<fp::Unit> bothVoided(const STML<A>& ma,
+STML<Unit> bothVoided(const STML<A>& ma,
                           const STML<B>& mb)
 {
-    return both<A, B, fp::Unit>(ma, mb, [](const A&, const B&)
+    return both<A, B, Unit>(ma, mb, [](const A&, const B&)
     {
-        return fp::unit;
+        return unit;
     });
 }
 
@@ -212,9 +212,9 @@ STML<B> sequence(const STML<A> ma,
 }
 
 template <typename A>
-STML<fp::Unit> voided(const STML<A>& ma)
+STML<Unit> voided(const STML<A>& ma)
 {
-    return sequence<A, fp::Unit>(ma, pure(fp::unit));
+    return sequence<A, Unit>(ma, pure(unit));
 }
 
 template <typename A, typename B>
@@ -233,23 +233,23 @@ STML<B> ifThenElse(const STML<bool>& mCond,
                    const STML<B>& mOnTrue,
                    const STML<B>& mOnFalse)
 {
-    return ifThenElse<bool, B>(mCond, mOnTrue, mOnFalse, fp::id);
+    return ifThenElse<bool, B>(mCond, mOnTrue, mOnFalse, id);
 }
 
 // Use `when` and `unless` combinators with care. Prefer ifThenElse instead.
 // Reason: it's possible to evaluate some internal transaction several times by a mistake.
 template <typename A>
-STML<fp::Unit> when(const STML<bool>& mCond,
+STML<Unit> when(const STML<bool>& mCond,
                     const STML<A>& ma)
 {
-    return ifThenElse<fp::Unit>(mCond, voided<A>(ma), pure(fp::unit));
+    return ifThenElse<Unit>(mCond, voided<A>(ma), pure(unit));
 }
 
 template <typename A>
-STML<fp::Unit> unless(const STML<bool>& mCond,
+STML<Unit> unless(const STML<bool>& mCond,
                       const STML<A>& ma)
 {
-    return ifThenElse<fp::Unit>(mCond, pure(fp::unit), voided<A>(ma));
+    return ifThenElse<Unit>(mCond, pure(unit), voided<A>(ma));
 }
 
 // Additional TVar combinators
@@ -319,7 +319,7 @@ STML<C> withTVars(const TVar<A>& tvar1,
 }
 
 template <typename A>
-STML<fp::Unit> modifyTVarCurried(const TVar<A>& tvar)
+STML<Unit> modifyTVarCurried(const TVar<A>& tvar)
 {
     return [&](const auto& f)
     {
@@ -331,7 +331,7 @@ template <typename A>
 STML<A> modifyTVarRet(const TVar<A>& tvar,
                       const std::function<A(A)>& f)
 {
-    return sequence<fp::Unit, A>(modifyTVar<A>(tvar, f), readTVar<A>(tvar));
+    return sequence<Unit, A>(modifyTVar<A>(tvar, f), readTVar<A>(tvar));
 }
 
 } // namespace stm

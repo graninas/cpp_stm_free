@@ -6,9 +6,6 @@
 #include <variant>
 #include <iostream>
 
-#include <unit.h>
-#include <identity.h>
-
 #include "tvar.h"
 #include "stm_free.h"
 
@@ -81,9 +78,9 @@ struct BindStmfVisitor
         WriteTVarA<STML<B>> fb;
         fb.tvar = fa.tvar;
         fb.val = fa.val;
-        fb.next = [=](const fp::Unit&)
+        fb.next = [=](const Unit&)
         {
-            STML<A> nextA = fa.next(fp::unit);
+            STML<A> nextA = fa.next(unit);
             return runBind<A, B, BindStmlVisitor>(nextA, f);
         };
         result.stmf = fb;

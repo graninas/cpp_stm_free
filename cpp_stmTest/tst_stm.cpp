@@ -187,10 +187,10 @@ void STMTest::atomicallyTest()
 
 void STMTest::coercingTest()
 {
-    stm::STML<TVarInt>  m1 = stm::newTVar(10);
-    stm::STML<int>      m2 = stm::bind<TVarInt, int>     (m1, stm::mReadTVar);
-    stm::STML<fp::Unit> x1 = stm::bind<TVarInt, fp::Unit>(m1, stm::mWriteTVarV(20));
-    stm::STML<fp::Unit> y1 = stm::sequence<TVarInt, fp::Unit>(m1, stm::mRetry);
+    stm::STML<TVarInt>   m1 = stm::newTVar(10);
+    stm::STML<int>       m2 = stm::bind<TVarInt, int>(m1, stm::mReadTVar);
+    stm::STML<stm::Unit> x1 = stm::bind<TVarInt, stm::Unit>(m1, stm::mWriteTVarV(20));
+    stm::STML<stm::Unit> y1 = stm::sequence<TVarInt, stm::Unit>(m1, stm::mRetry);
 
     stm::Context context;
     int result1 = stm::atomically(context, m2);
@@ -311,7 +311,7 @@ void STMTest::bothVoidedCombinatorTest()
             (pure(10),
              pure(std::string("abc")));
 
-    fp::Unit result = run(mResult);
+    Unit result = run(mResult);
     Q_UNUSED(result);
 }
 
@@ -325,7 +325,7 @@ void STMTest::modifyTVarTest()
     auto mResult = bind<TVar<int>, int>(m1, [=](auto tvar)
     {
         auto m3 = modifyTVar(tvar, f);
-        return bind<fp::Unit, int>(m3, [=](const auto&)
+        return bind<Unit, int>(m3, [=](const auto&)
         {
             return readTVar(tvar);
         });
