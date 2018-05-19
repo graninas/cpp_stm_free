@@ -97,7 +97,7 @@ struct StmlVisitor
     void operator()(const PureF<Ret>& p)
     {
 //        std::cout << "\nPureF";
-        result = { false, unPureF(p) };
+        result = { false, p.ret };
     }
 
     void operator()(const FreeF<Ret>& f)

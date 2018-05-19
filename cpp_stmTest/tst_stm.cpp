@@ -84,23 +84,23 @@ void STMTest::stupidGuidTest()
 
 void STMTest::visitorTest()
 {
-    stm::STML<int>                 a1 = stm::free::pureF(10);
-    stm::STML<stm::TVar<std::any>> a2 = stm::free::newTVarA(10);
+    stm::STML<int>     m1 = stm::pure(10);
+    stm::STML<TVarInt> m2 = stm::newTVar(10);
 
     stm::Context context1;
     auto ustamp1 = context1.newGUID();
     auto snapshot1 = context1.takeSnapshot();
     stm::AtomicRuntime runtime1(context1, ustamp1, snapshot1);
 
-    int result1 = withSuccess(stm::free::runSTML<int, stm::free::StmlVisitor>(runtime1, a1));
+    int result1 = withSuccess(stm::free::runSTML<int, stm::free::StmlVisitor>(runtime1, m1));
     QVERIFY(result1 == 10);
 
     stm::Context context2;
     auto ustamp2 = context2.newGUID();
     auto snapshot2 = context2.takeSnapshot();
     stm::AtomicRuntime runtime2(context2, ustamp2, snapshot2);
-    stm::TVar<std::any> result2 =
-            withSuccess(stm::free::runSTML<stm::TVar<std::any>, stm::free::StmlVisitor>(runtime2, a2));
+    TVarInt result2 =
+            withSuccess(stm::free::runSTML<TVarInt, stm::free::StmlVisitor>(runtime2, m2));
     QVERIFY(result2.id.size() == 32);
 }
 
@@ -123,33 +123,33 @@ void STMTest::bind1Test()
 
 void STMTest::bind2Test()
 {
-    std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
-            [](const stm::TVar<std::any>& tvar)
+    std::function<stm::STML<int>(TVarInt)> f =
+            [](const TVarInt& tvar)
     {
-        return stm::free::readTVarA(tvar);
+        return stm::readTVar(tvar);
     };
 
-    auto x = stm::free::newTVarA(10);
+    auto x = stm::newTVar(10);
 
-    stm::STML<std::any> s = stm::bind(x, f);
+    stm::STML<int> s = stm::bind(x, f);
 
     stm::Context context;
     auto snapshot = context.takeSnapshot();
     stm::AtomicRuntime runtime(context, context.newGUID(), snapshot);
 
-    std::any result = withSuccess(stm::free::runSTML<std::any, stm::free::StmlVisitor>(runtime, s));
-    QVERIFY(std::any_cast<int>(result) == 10);
+    int result = withSuccess(stm::free::runSTML<int, stm::free::StmlVisitor>(runtime, s));
+    QVERIFY(result == 10);
 }
 
 void STMTest::bindRetryTest()
 {
-    std::function<stm::STML<stm::TVar<std::any>>(stm::TVar<std::any>)> f =
-            [](const stm::TVar<std::any>)
+    std::function<stm::STML<TVarInt>(TVarInt)> f =
+            [](const TVarInt)
     {
-        return stm::free::retry<stm::TVar<std::any>>();
+        return stm::retry<TVarInt>();
     };
 
-    auto x = stm::free::newTVarA(10);
+    auto x = stm::newTVar(10);
     auto s = stm::bind(x, f);
 
     stm::Context context;
@@ -159,7 +159,7 @@ void STMTest::bindRetryTest()
     bool success = false;
     try
     {
-        withSuccess(stm::free::runSTML<stm::TVar<std::any>, stm::free::StmlVisitor>(runtime, s));
+        withSuccess(stm::free::runSTML<TVarInt, stm::free::StmlVisitor>(runtime, s));
     }
     catch (...)
     {
@@ -170,19 +170,19 @@ void STMTest::bindRetryTest()
 
 void STMTest::atomicallyTest()
 {
-    std::function<stm::STML<std::any>(stm::TVar<std::any>)> f =
-            [](const stm::TVar<std::any>& tvar)
+    std::function<stm::STML<int>(TVarInt)> f =
+            [](const TVarInt& tvar)
     {
-        return stm::free::readTVarA(tvar);
+        return stm::readTVar(tvar);
     };
 
-    auto x = stm::free::newTVarA(10);
+    auto x = stm::newTVar(10);
 
-    stm::STML<std::any> s = stm::bind(x, f);
+    stm::STML<int> s = stm::bind(x, f);
 
     stm::Context context;
     auto result = stm::atomically(context, s);
-    QVERIFY(std::any_cast<int>(result) == 10);
+    QVERIFY(result == 10);
 }
 
 void STMTest::coercingTest()
@@ -291,13 +291,13 @@ void STMTest::bothTVarsCombinatorTest()
 {
     using namespace stm;
 
-    auto mResult = bothTVars<int, std::string, std::string>
-            (newTVar(10),
-             newTVar(std::string("abc")),
-             [](int i, const std::string& s)
-    {
-        return std::to_string(i) + s;
-    });
+    auto mResult = withTVars<int, std::string, std::string>(
+                newTVar(10),
+                newTVar(std::string("abc")),
+                [](int i, const std::string& s)
+                {
+                    return std::to_string(i) + s;
+                });
 
     auto result = run(mResult);
     QVERIFY(result == std::string("10abc"));

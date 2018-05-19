@@ -92,9 +92,7 @@ struct BindStmfVisitor
     void operator()(const RetryA<STML<A>>&)
     {
 //        std::cout << "\nBind: RetryA.";
-
-        RetryA<STML<B>> fb;
-        result.stmf = fb;
+        result.stmf = RetryA<STML<B>> {};
     }
 };
 
@@ -127,14 +125,6 @@ struct BindStmlVisitor
         result.stml = FreeF<B> { visited };
     }
 };
-
-template <typename A, typename B>
-STML<B> bindFree(const STML<A> ma, const ArrowFunc<A, B>& f)
-{
-    BindStmlVisitor<A, B> visitor(f);
-    std::visit(visitor, ma.stml);
-    return visitor.result;
-}
 
 } // namespace free
 } // namespace stm

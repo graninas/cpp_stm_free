@@ -13,112 +13,78 @@
 namespace stm
 {
 
-// TODO: optimal random time backoff
-// TODO: notifications instead of time wait
+/// STML monadic interface
 
 template <typename A>
 using STML = free::STML<A>;
 
-template <typename A>
-A atomically(Context& context, const STML<A>& stml)
-{
-    return runSTM(context, stml);
-}
-
 template <typename A, typename B>
-STML<B> bind(const STML<A> ma, const free::ArrowFunc<A, B>& f)
+STML<B> bind(const STML<A> ma,
+             const std::function<STML<B>(A)>& f)
 {
-    return free::bindFree(ma, f);
+    free::BindStmlVisitor<A, B> visitor(f);
+    std::visit(visitor, ma.stml);
+    return visitor.result;
 }
 
 template <typename A>
-STML<A> retry(const A&)
+STML<A> join(const STML<STML<A>> mma)
 {
-    return free::retry<A>();
-}
-
-template <typename A>
-STML<fp::Unit> retryF(const A&)
-{
-    return free::retry<fp::Unit>();
+    return bind<STML<A>, A>(mma, [](const STML<A>& ma) { return ma; });
 }
 
 template <typename A>
 STML<A> pure(const A& a)
 {
-    return free::pureF(a);
-}
-
-const STML<fp::Unit> mRetry = free::retry<fp::Unit>();
-
-template <typename A, typename Ret>
-STML<Ret> with(
-        const STML<A>& ma,
-        const std::function<Ret(A)>& f)
-{
-    return bind<A, Ret>(ma, [=](const A& a)
-    {
-        return pure(f(a));
-    });
+    return { free::PureF<A>{ a } };
 }
 
 template <typename A>
-STML<TVar<A>> newTVar(const A& val, const std::string& name = "")
+STML<A> retry()
 {
-    return free::newTVar(val, name);
+    return free::wrapA(free::RetryA<STML<A>> {});
 }
 
 template <typename A>
-TVar<A> newTVarIO(Context& context, const A& val, const std::string& name = "")
+STML<TVar<A>> newTVar(const A& val,
+                      const std::string& name = "")
 {
-    return atomically(context, free::newTVar<A>(val, name));
+    free::NewTVar<A, STML<TVar<A>>> n;
+    n.val = val;
+    n.name = name;
+    n.next = [](const TVar<A>& tvar) {
+        return free::pureF(tvar);
+    };
+    return free::wrapT(n);
 }
 
 template <typename A>
 STML<A> readTVar(const TVar<A>& tvar)
 {
-    return free::readTVar(tvar);
+    free::ReadTVar<A, STML<A>> n;
+    n.tvar = tvar;
+    n.next = [](const A& val) {
+        return free::pureF(val);
+    };
+    return free::wrapT(n);
 }
-
-const auto mReadTVar = [](const auto& tvar)
-{
-    return free::readTVar(tvar);
-};
 
 template <typename A>
-STML<fp::Unit> writeTVar(const TVar<A>& tvar, const A& val)
+STML<fp::Unit> writeTVar(const TVar<A>& tvar,
+                         const A& val)
 {
-    return free::writeTVar(tvar, val);
-}
-
-const auto writeTVarT = [](const auto& tvar)
-{
-    return [&](const auto& val)
-    {
-        return free::writeTVar(tvar, val);
+    free::WriteTVar<A, STML<fp::Unit>> n;
+    n.tvar = tvar;
+    n.val  = val;
+    n.next = [](const fp::Unit& unit) {
+        return free::pureF(unit);
     };
-};
-
-const auto writeTVarV = [](const auto& val)
-{
-    return [&](const auto& tvar)
-    {
-        return free::writeTVar(tvar, val);
-    };
-};
-
-template <typename A, typename Ret>
-STML<Ret> withTVar(
-        const TVar<A>& tVar,
-        const std::function<Ret(A)>& f)
-{
-    return with(readTVar(tVar), f);
+    return free::wrapT(n);
 }
-
 
 template <typename A>
-const STML<fp::Unit>
-modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
+STML<fp::Unit> modifyTVar(const TVar<A>& tvar,
+                          const std::function<A(A)>& f)
 {
     return bind<A, fp::Unit>(readTVar(tvar), [=](const A& val)
     {
@@ -126,35 +92,87 @@ modifyTVar(const TVar<A>& tvar, const std::function<A(A)>& f)
     });
 }
 
+/// STML evaluation
+
 template <typename A>
-STML<fp::Unit> modifyTVarT(const TVar<A>& tvar)
+A atomically(Context& context,
+             const STML<A>& stml)
 {
-    return [&](const auto& f)
+    return free::runSTM(context, stml);
+}
+
+// Special version of newTVarIO
+template <typename A>
+TVar<A> newTVarIO(Context& context,
+                  const A& val,
+                  const std::string& name = "")
+{
+    return atomically(context, newTVar<A>(val, name));
+}
+
+/// Combinators
+
+// Monadic values and lambdas (type inference can be better with them).
+
+const STML<fp::Unit> mRetry = retry<fp::Unit>();
+
+const auto mNewTVar = [](const auto& val)
+{
+    return newTVar(val);
+};
+
+const auto mReadTVar = [](const auto& tvar)
+{
+    return readTVar(tvar);
+};
+
+const auto writeTVarT = [](const auto& tvar)
+{
+    return [&](const auto& val)
     {
-        auto m = free::readTVar(tvar);
-        return bind(m, [=](const auto& val)
-        {
-            return free::writeTVar(tvar, f(val));
-        });
+        return writeTVar(tvar, val);
     };
+};
+
+const auto writeTVarV = [](const auto& val)
+{
+    return [&](const auto& tvar)
+    {
+        return writeTVar(tvar, val);
+    };
+};
+
+// Generic combinators
+
+// TODO: generic with using varargs and variadic templates
+template <typename A, typename B>
+STML<B> with(const STML<A>& ma,
+             const std::function<B(A)>& f)
+{
+    return bind<A, B>(ma, [=](const A& a)
+    {
+        return pure(f(a));
+    });
 }
 
-template <typename A>
-STML<fp::Unit> voided(const STML<A>& ma)
+template <typename A, typename B, typename C>
+STML<C> both(const STML<A>& ma,
+             const STML<B>& mb,
+             const std::function<STML<C>(A, B)>& f)
 {
-    return bind<A, fp::Unit>(ma, [](const A&) { return pure(fp::unit); });
-}
-
-template <typename A, typename B, typename Ret>
-STML<Ret> both(const STML<A>& ma,
-               const STML<B>& mb,
-               const std::function<Ret(A, B)>& f)
-{
-    return bind<A, Ret>(ma, [=](const A& a){
-        return bind<B, Ret>(mb, [=](const B& b){
-            return pure(f(a, b));
+    return bind<A, C>(ma, [=](const A& a){
+        return bind<B, C>(mb, [=](const B& b){
+            return f(a, b);
         });
     });
+}
+
+template <typename A, typename B, typename C>
+STML<C> both(const STML<A>& ma,
+             const STML<B>& mb,
+             const std::function<C(A, B)>& f)
+{
+    return both<A, B, C>(ma, mb, [=](const A& a, const B& b) { return pure(f(a, b)); });
 }
 
 template <typename A, typename B>
@@ -167,21 +185,11 @@ STML<fp::Unit> bothVoided(const STML<A>& ma,
     });
 }
 
-
-// TODO: replace by var args.
-template <typename A, typename B, typename Ret>
-STML<Ret> bothTVars(
-        const STML<TVar<A>>& ma,
-        const STML<TVar<B>>& mb,
-        const std::function<Ret(A, B)>& f)
-{
-    return both<A, B>(bind<TVar<A>, A>(ma, mReadTVar),
-                      bind<TVar<B>, B>(mb, mReadTVar),
-                      f);
-}
-
+// TODO: rename it (`andThen`?)
+// TODO: make sequence as in Haskell
 template <typename A, typename B>
-STML<B> sequence(const STML<A> ma, const STML<B>& mb)
+STML<B> sequence(const STML<A> ma,
+                 const STML<B>& mb)
 {
     return both<A, B, B>(ma, mb, [](const A&, const B& b)
     {
@@ -189,58 +197,127 @@ STML<B> sequence(const STML<A> ma, const STML<B>& mb)
     });
 }
 
+template <typename A>
+STML<fp::Unit> voided(const STML<A>& ma)
+{
+    return sequence<A, fp::Unit>(ma, pure(fp::unit));
+}
+
 template <typename A, typename B>
-STML<B> ifThenElse(const STML<A>& m,
+STML<B> ifThenElse(const STML<A>& ma,
                    const STML<B>& mOnTrue,
                    const STML<B>& mOnFalse,
                    const std::function<bool(A)>& condF)
 {
-    return bind<A, B>(m, [=](const A& a) {
-//        std::cout << "conditional cond: " << condF(a) << std::endl;
+    return bind<A, B>(ma, [=](const A& a) {
         return condF(a) ? mOnTrue : mOnFalse;
     });
 }
 
 template <typename B>
-STML<B> ifThenElse(const STML<bool>& m,
+STML<B> ifThenElse(const STML<bool>& mCond,
                    const STML<B>& mOnTrue,
                    const STML<B>& mOnFalse)
 {
-    return ifThenElse<bool, B>(m, mOnTrue, mOnFalse, fp::id);
+    return ifThenElse<bool, B>(mCond, mOnTrue, mOnFalse, fp::id);
 }
 
-// Use these combinators with care. Prefer ifThenElse instead of both when and unless.
-template <typename B>
-STML<fp::Unit> when(const STML<bool>& ma, const STML<B>& mb)
+// Use `when` and `unless` combinators with care. Prefer ifThenElse instead.
+// Reason: it's possible to evaluate some internal transaction several times by a mistake.
+template <typename A>
+STML<fp::Unit> when(const STML<bool>& mCond,
+                    const STML<A>& ma)
 {
-    return bind<bool, fp::Unit>(ma, [=](bool cond) {
-//        std::cout << "when cond: " << cond << std::endl;
-        return cond
-                ? voided<B>(mb)
-                : pure(fp::unit);
-    });
-}
-
-template <typename B>
-STML<fp::Unit> unless(const STML<bool>& ma, const STML<B>& mb)
-{
-    return bind<bool, fp::Unit>(ma, [=](bool cond) {
-//        std::cout << "unless cond: " << cond << std::endl;
-        return cond
-                ? pure(fp::unit)
-                : voided<B>(mb);
-    });
+    return ifThenElse<fp::Unit>(mCond, voided<A>(ma), pure(fp::unit));
 }
 
 template <typename A>
-STML<A> modifyTVarRet(const TVar<A>& tvar, const std::function<A(A)>& f)
+STML<fp::Unit> unless(const STML<bool>& mCond,
+                      const STML<A>& ma)
 {
-    auto m = readTVar(tvar);
-    return bind<A, A>(m, [=](const A& i)
+    return ifThenElse<fp::Unit>(mCond, pure(fp::unit), voided<A>(ma));
+}
+
+// Additional TVar combinators
+
+template <typename A, typename B>
+STML<B> withTVar(const STML<TVar<A>>& ma,
+                 const std::function<STML<B>(A)>& f)
+{
+    return bind<A, B>(bind<TVar<A>, A>(ma, mReadTVar), f);
+}
+
+template <typename A, typename B>
+STML<B> withTVar(const TVar<A>& tvar,
+                 const std::function<STML<B>(A)>& f)
+{
+    return bind<A, B>(readTVar<A>(tvar), f);
+}
+
+template <typename A, typename B>
+STML<B> withTVar(const TVar<A>& tvar,
+                 const std::function<B(A)>& f)
+{
+    return bind<A, B>(readTVar(tvar),
+                      [=](const A& a) { return pure(f(a)); });
+}
+
+// TODO: replace by var args.
+
+template <typename A, typename B, typename C>
+STML<C> withTVars(const STML<TVar<A>>& ma,
+                  const STML<TVar<B>>& mb,
+                  const std::function<STML<C>(A, B)>& f)
+{
+    return both<A, B, C>(bind<TVar<A>, A>(ma, mReadTVar),
+                         bind<TVar<B>, B>(mb, mReadTVar),
+                         f);
+}
+
+template <typename A, typename B, typename C>
+STML<C> withTVars(const STML<TVar<A>>& ma,
+                  const STML<TVar<B>>& mb,
+                  const std::function<C(A, B)>& f)
+{
+    return both<A, B, C>(bind<TVar<A>, A>(ma, mReadTVar),
+                         bind<TVar<B>, B>(mb, mReadTVar),
+                         f);
+}
+
+template <typename A, typename B, typename C>
+STML<C> withTVars(const TVar<A>& tvar1,
+                  const TVar<B>& tvar2,
+                  const std::function<C(A, B)>& f)
+{
+    return both<A, B, C>(readTVar(tvar1),
+                         readTVar(tvar2),
+                         f);
+}
+
+template <typename A, typename B, typename C>
+STML<C> withTVars(const TVar<A>& tvar1,
+                  const TVar<B>& tvar2,
+                  const std::function<STML<C>(A, B)>& f)
+{
+    return both<A, B, C>(readTVar(tvar1),
+                         readTVar(tvar2),
+                         f);
+}
+
+template <typename A>
+STML<fp::Unit> modifyTVarCurried(const TVar<A>& tvar)
+{
+    return [&](const auto& f)
     {
-        auto newResult = f(i);
-        return sequence(writeTVar(tvar, newResult), pure(newResult));
-    });
+        return modifyTVar<A>(tvar, f);
+    };
+}
+
+template <typename A>
+STML<A> modifyTVarRet(const TVar<A>& tvar,
+                      const std::function<A(A)>& f)
+{
+    return sequence<A, A>(modifyTVar(tvar, f), readTVar(tvar));
 }
 
 } // namespace stm
