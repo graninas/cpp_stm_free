@@ -116,6 +116,11 @@ TVar<A> newTVarIO(Context& context,
 
 const STML<fp::Unit> mRetry = retry<fp::Unit>();
 
+const auto mPure = [](const auto& val)
+{
+    return pure(val);
+};
+
 const auto mNewTVar = [](const auto& val)
 {
     return newTVar(val);
@@ -126,7 +131,7 @@ const auto mReadTVar = [](const auto& tvar)
     return readTVar(tvar);
 };
 
-const auto writeTVarT = [](const auto& tvar)
+const auto mWriteTVarT = [](const auto& tvar)
 {
     return [&](const auto& val)
     {
@@ -134,7 +139,7 @@ const auto writeTVarT = [](const auto& tvar)
     };
 };
 
-const auto writeTVarV = [](const auto& val)
+const auto mWriteTVarV = [](const auto& val)
 {
     return [&](const auto& tvar)
     {
@@ -145,6 +150,15 @@ const auto writeTVarV = [](const auto& val)
 // Generic combinators
 
 // TODO: generic with using varargs and variadic templates
+
+// Alias for `bind`.
+template <typename A, typename B>
+STML<B> with(const STML<A>& ma,
+             const std::function<STML<B>(A)>& f)
+{
+    return bind<A, B>(ma, f);
+}
+
 template <typename A, typename B>
 STML<B> with(const STML<A>& ma,
              const std::function<B(A)>& f)
@@ -317,7 +331,7 @@ template <typename A>
 STML<A> modifyTVarRet(const TVar<A>& tvar,
                       const std::function<A(A)>& f)
 {
-    return sequence<A, A>(modifyTVar(tvar, f), readTVar(tvar));
+    return sequence<fp::Unit, A>(modifyTVar<A>(tvar, f), readTVar<A>(tvar));
 }
 
 } // namespace stm

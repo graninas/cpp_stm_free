@@ -189,7 +189,7 @@ void STMTest::coercingTest()
 {
     stm::STML<TVarInt>  m1 = stm::newTVar(10);
     stm::STML<int>      m2 = stm::bind<TVarInt, int>     (m1, stm::mReadTVar);
-    stm::STML<fp::Unit> x1 = stm::bind<TVarInt, fp::Unit>(m1, stm::writeTVarV(20));
+    stm::STML<fp::Unit> x1 = stm::bind<TVarInt, fp::Unit>(m1, stm::mWriteTVarV(20));
     stm::STML<fp::Unit> y1 = stm::sequence<TVarInt, fp::Unit>(m1, stm::mRetry);
 
     stm::Context context;
