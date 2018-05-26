@@ -14,6 +14,12 @@ Requirements
 
 - GCC 7.2
 
+Troubleshooting
+---------------
+
+- Pass tvars to closures by copy.
+- Make `retry` satisfiable.
+
 See also: Dining Philosophers
 -----------------------------
 

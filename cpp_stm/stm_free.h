@@ -162,21 +162,12 @@ STML<Ret> pureF(const Ret& a)
 template <typename A, typename Ret, template <typename, typename> class Method>
 STML<Ret> wrapT(const Method<A, STML<Ret>>& method)
 {
-//    Method<Any, STML<Ret>> method2;
-//    method2 = method.toAny();
-
-//    STMF<STML<Ret>> f {method2};
-//    FreeF<Ret> b {f};
-//    return {b};
     return { FreeF<Ret> { STMF<STML<Ret>> { method.toAny() } } };
 }
 
 template <typename Ret, template <typename, typename> class Method>
 STML<Ret> wrapA(const Method<Any, STML<Ret>>& method)
 {
-//    STMF<STML<Ret>> f {method};
-//    FreeF<Ret> b {f};
-//    return {b};
     return { FreeF<Ret> { STMF<STML<Ret>> { method } } };
 }
 

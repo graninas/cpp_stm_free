@@ -71,7 +71,7 @@ STML<A> readTVar(const TVar<A>& tvar)
 
 template <typename A>
 STML<Unit> writeTVar(const TVar<A>& tvar,
-                         const A& val)
+                     const A& val)
 {
     free::WriteTVar<A, STML<Unit>> n;
     n.tvar = tvar;
@@ -84,7 +84,7 @@ STML<Unit> writeTVar(const TVar<A>& tvar,
 
 template <typename A>
 STML<Unit> modifyTVar(const TVar<A>& tvar,
-                          const std::function<A(A)>& f)
+                      const std::function<A(A)>& f)
 {
     return bind<A, Unit>(readTVar(tvar), [=](const A& val)
     {
@@ -133,7 +133,7 @@ const auto mReadTVar = [](const auto& tvar)
 
 const auto mWriteTVarT = [](const auto& tvar)
 {
-    return [&](const auto& val)
+    return [=](const auto& val)
     {
         return writeTVar(tvar, val);
     };
@@ -141,7 +141,7 @@ const auto mWriteTVarT = [](const auto& tvar)
 
 const auto mWriteTVarV = [](const auto& val)
 {
-    return [&](const auto& tvar)
+    return [=](const auto& tvar)
     {
         return writeTVar(tvar, val);
     };
@@ -240,7 +240,7 @@ STML<B> ifThenElse(const STML<bool>& mCond,
 // Reason: it's possible to evaluate some internal transaction several times by a mistake.
 template <typename A>
 STML<Unit> when(const STML<bool>& mCond,
-                    const STML<A>& ma)
+                const STML<A>& ma)
 {
     return ifThenElse<Unit>(mCond, voided<A>(ma), pure(unit));
 }
@@ -321,7 +321,7 @@ STML<C> withTVars(const TVar<A>& tvar1,
 template <typename A>
 STML<Unit> modifyTVarCurried(const TVar<A>& tvar)
 {
-    return [&](const auto& f)
+    return [=](const auto& f)
     {
         return modifyTVar<A>(tvar, f);
     };

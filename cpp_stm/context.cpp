@@ -4,7 +4,6 @@
 namespace stm
 {
 
-
 Context::Context()
     : _generator()
     , _distribution(std::uniform_int_distribution<int>(1, 16))
@@ -93,7 +92,7 @@ TVarHandle AtomicRuntime::getTVarHandle(const TVarId& tvarId) const
 {
     auto found = _localTVars.find(tvarId);
     if (found == _localTVars.end())
-        throw std::runtime_error("TVar not found.");
+        throw std::runtime_error("TVar not found: " + tvarId);
     return found->second;
 }
 
