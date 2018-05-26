@@ -9,6 +9,11 @@ Working library for Software Transactional Memory that is built using several FP
 - It operates by custom ADTs.
 - It is usable despite it's experimental.
 
+Tutorials
+---------
+
+- [Software Transactional Memory in C++: pure functional approach](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525)
+
 Requirements
 ------------
 
