@@ -327,11 +327,19 @@ STML<Unit> modifyTVarCurried(const TVar<A>& tvar)
     };
 }
 
+
 template <typename A>
 STML<A> modifyTVarRet(const TVar<A>& tvar,
                       const std::function<A(A)>& f)
 {
     return sequence<Unit, A>(modifyTVar<A>(tvar, f), readTVar<A>(tvar));
+}
+
+template <typename A>
+STML<A> writeTVarRet(const TVar<A>& tvar,
+                     const A& a)
+{
+    return sequence<Unit, A>(writeTVar(tvar, a), readTVar(tvar));
 }
 
 } // namespace stm
