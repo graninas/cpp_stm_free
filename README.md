@@ -9,15 +9,18 @@ Working library for Software Transactional Memory that is built using several FP
 - It operates by custom ADTs.
 - It is usable despite it's experimental.
 
-Tutorials
----------
-
-- [Software Transactional Memory in C++: pure functional approach](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525)
-
 Requirements
 ------------
 
 - GCC 7.2
+
+Tutorials and samples
+---------------------
+
+ - [Tutorial: Software Transactional Memory in C++](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525)
+ - [Dining Philosophers Problem solved (variant 1)](https://github.com/graninas/cpp_philosophers_stm/blob/master/src/philosophers/philosophers_stm.h)
+ - [Dining Philosophers Problem solved (variant 2)](https://github.com/graninas/cpp_philosophers_stm/blob/philosophers-variant2/src/philosophers/philosophers_stm.h)
+ - [More samples](https://github.com/graninas/stm_samples)
 
 Troubleshooting
 ---------------
@@ -25,27 +28,54 @@ Troubleshooting
 - Pass tvars to closures by copy.
 - Make `retry` satisfiable.
 
-See also: Dining Philosophers
------------------------------
+Examples
+--------
 
-The Dining Philosophers task is solved with this STM library. Check this project to see how to use STM.
+The simplest possible usage is int counter increment from different threads.
 
-https://github.com/graninas/cpp_philosophers_stm
+Transaction:
 
-See also: Amber
----------------
+```cpp
+stm::STML<int> incrementCounter(const stm::TVar<int>& tCounter) {
+    stm::STML<stm::Unit> modified =
+            stm::modifyTVar<int>(tCounter, [](int i) { return i + 1; });
 
-Showcase of functional declarative design in C++.
+    return stm::bind<stm::Unit, int>(modified,
+                     [&](const stm::Unit&){ return stm::readTVar<int>(tCounter); });
+}
+```
 
-Game about Amber from The Chronicles of Amber.
+Evaluation:
 
-https://github.com/graninas/Amber
+```cpp
+Context ctx;
 
-See also: CMLife
-----------------
+stm::TVar<int> tCounter = stm::newTVarIO(ctx, 0);
+int counter = stm::atomically(ctx, incrementCounter(tCounter));
+std::cout << "Counter: " << counter << std::endl;
+```
 
-CMLife - another showcase of functional declarative design in C++.
+The `Dining Philosopher Problem` can be solved with STM elegantly. Here are the transactions for taking of forks:
 
-Parallel celullar automata built on top of comonads and std::future used as monad.
+```cpp
+stm::STML<stm::Unit> takeFork(const TFork& tFork) {
+    return stm::withTVar<Fork, stm::Unit>(tFork, [=](const Fork& fork) {
+       if (fork.state == ForkState::Free) {
+           return stm::writeTVar<Fork>(tFork, Fork { fork.name, ForkState::Taken });
+       }
+       else {
+           return stm::retry<stm::Unit>();
+       }
+    });
+}
 
-https://github.com/graninas/CMLife
+stm::STML<stm::Unit> takeForks(const TForkPair& forks) {
+    stm::STML<stm::Unit> lm = takeFork(forks.left);
+    stm::STML<stm::Unit> rm = takeFork(forks.right);
+    return stm::sequence(lm, rm);
+}
+```
+
+Notice the `retry` combinator that marks some state illegal and makes the transaction to restart on case if fork was already taken.
+
+To get more information, read the [tutorial](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525).
