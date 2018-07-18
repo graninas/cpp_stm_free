@@ -101,13 +101,21 @@ A atomically(Context& context,
     return free::runSTM(context, stml);
 }
 
-// Special version of newTVarIO
+// Special version of newTVar
 template <typename A>
 TVar<A> newTVarIO(Context& context,
                   const A& val,
                   const std::string& name = "")
 {
     return atomically(context, newTVar<A>(val, name));
+}
+
+// Special version of readTVar. Can be possibly optimized to not to wait for conflicts.
+template <typename A>
+A readTVarIO(Context& context,
+             const TVar<A>& tvar)
+{
+    return atomically(context, readTVar<A>(tvar));
 }
 
 /// Combinators
@@ -274,6 +282,17 @@ STML<B> withTVar(const TVar<A>& tvar,
 {
     return bind<A, B>(readTVar(tvar),
                       [=](const A& a) { return pure(f(a)); });
+}
+
+template <typename A, typename B>
+STML<Unit> whenTVar(const TVar<A>& tvar,
+                    const std::function<bool(A)>& tvarCond,
+                    const STML<B>& mb)
+{
+    return withTVar<A, Unit>(tvar, [=](const A& a)
+    {
+        return when<B>(pure(tvarCond(a)), mb);
+    });
 }
 
 // TODO: replace by var args.
