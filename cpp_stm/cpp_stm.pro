@@ -30,7 +30,8 @@ HEADERS += \
     stm.h \
     stm_runtime.h \
     unit.h \
-    id.h
+    id.h \
+    stm_optional.h
 
 unix {
     target.path = /usr/lib

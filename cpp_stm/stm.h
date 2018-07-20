@@ -2,7 +2,6 @@
 #define STM_H
 
 #include <tuple>
-#include <iostream>
 
 #include "context.h"
 #include "stm_runtime.h"
@@ -124,6 +123,8 @@ A readTVarIO(Context& context,
 
 const STML<Unit> mRetry = retry<Unit>();
 
+const STML<Unit> mUnit = pure<stm::Unit>(stm::unit);
+
 const auto mPure = [](const auto& val)
 {
     return pure(val);
@@ -199,7 +200,7 @@ STML<C> both(const STML<A>& ma,
 
 template <typename A, typename B>
 STML<Unit> bothVoided(const STML<A>& ma,
-                          const STML<B>& mb)
+                      const STML<B>& mb)
 {
     return both<A, B, Unit>(ma, mb, [](const A&, const B&)
     {
@@ -210,7 +211,7 @@ STML<Unit> bothVoided(const STML<A>& ma,
 // TODO: rename it (`andThen`?)
 // TODO: make sequence as in Haskell
 template <typename A, typename B>
-STML<B> sequence(const STML<A> ma,
+STML<B> sequence(const STML<A>& ma,
                  const STML<B>& mb)
 {
     return both<A, B, B>(ma, mb, [](const A&, const B& b)
@@ -255,7 +256,7 @@ STML<Unit> when(const STML<bool>& mCond,
 
 template <typename A>
 STML<Unit> unless(const STML<bool>& mCond,
-                      const STML<A>& ma)
+                  const STML<A>& ma)
 {
     return ifThenElse<Unit>(mCond, pure(unit), voided<A>(ma));
 }
@@ -345,7 +346,6 @@ STML<Unit> modifyTVarCurried(const TVar<A>& tvar)
         return modifyTVar<A>(tvar, f);
     };
 }
-
 
 template <typename A>
 STML<A> modifyTVarRet(const TVar<A>& tvar,
