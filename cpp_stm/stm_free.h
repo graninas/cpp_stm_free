@@ -91,6 +91,16 @@ struct NewTVar
 #endif
     }
 
+    NewTVar(const NewTVar<A, Next>&& other)
+        : val(other.val)
+        , name(other.name)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: move constructor, name: " << other.name << std::endl;
+#endif
+    }
+
     NewTVar<A, Next>& operator=(NewTVar<A, Next> other)
     {
 
@@ -161,6 +171,19 @@ struct ReadTVar
     {
 #ifdef STM_DEBUG
         std::cout << "ReadTVar: copy constructor, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+    }
+
+    ReadTVar(const ReadTVar<A, Next>&& other)
+        : tvar(other.tvar)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: move constructor, tvar id: "
                   << other.tvar.id
                   << ", tvar name: "
                   << other.tvar.name
@@ -248,6 +271,20 @@ struct WriteTVar
     {
 #ifdef STM_DEBUG
         std::cout << "WriteTVar: copy constructor, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+    }
+
+    WriteTVar(const ReadTVar<A, Next>&& other)
+        : tvar(other.tvar)
+        , val(other.val)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: move constructor, tvar id: "
                   << other.tvar.id
                   << ", tvar name: "
                   << other.tvar.name
