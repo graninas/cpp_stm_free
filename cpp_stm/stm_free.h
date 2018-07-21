@@ -38,7 +38,10 @@ struct NewTVar
     std::string name;
     std::function<Next(TVar<A>)> next;
 
-    NewTVar<Any, Next> toAny() const
+    static NewTVar<Any, Next> toAny(
+            const A& val,
+            const std::string& name,
+            const std::function<Next(TVar<A>)>& next)
     {
         std::function<Next(TVar<A>)> nextCopy = next;
 
@@ -131,7 +134,9 @@ struct ReadTVar
     TVar<A> tvar;
     std::function<Next(A)> next;
 
-    ReadTVar<Any, Next> toAny() const
+    static ReadTVar<Any, Next> toAny(
+            const TVar<A>& tvar,
+            const std::function<Next(A)>& next)
     {
         std::function<Next(A)> nextCopy = next;
         TVar<Any> tvar2;
@@ -227,7 +232,10 @@ struct WriteTVar
     A val;
     std::function<Next(Unit)> next;
 
-    WriteTVar<Any, Next> toAny() const
+    static WriteTVar<Any, Next> toAny(
+            const TVar<A>& tvar,
+            const A& val,
+            const std::function<Next(Unit)>& next)
     {
         std::function<Next(Unit)> nextCopy = next;
         TVar<Any> tvar2;
@@ -243,7 +251,6 @@ struct WriteTVar
         };
         return m;
     }
-
 
     WriteTVar()
     {
@@ -380,10 +387,10 @@ STML<Ret> pureF(const Ret& a)
     return { PureF<Ret> { a } };
 }
 
-template <typename A, typename Ret, template <typename, typename> class Method>
-STML<Ret> wrapT(const Method<A, STML<Ret>>& method)
+template <typename Ret, template <typename, typename> class Method>
+STML<Ret> wrapT(const Method<Any, STML<Ret>>& method)
 {
-    return { FreeF<Ret> { STMF<STML<Ret>> { method.toAny() } } };
+    return { FreeF<Ret> { STMF<STML<Ret>> { method } } };
 }
 
 template <typename Ret, template <typename, typename> class Method>

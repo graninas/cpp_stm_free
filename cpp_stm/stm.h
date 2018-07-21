@@ -48,37 +48,34 @@ template <typename A>
 STML<TVar<A>> newTVar(const A& val,
                       const std::string& name = "")
 {
-    free::NewTVar<A, STML<TVar<A>>> n;
-    n.val = val;
-    n.name = name;
-    n.next = [](const TVar<A>& tvar) {
-        return free::pureF(tvar);
-    };
-    return free::wrapT(n);
+    auto r = free::NewTVar<A, STML<TVar<A>>>::toAny(
+                val,
+                name,
+                [](const TVar<A>& tvar) { return free::pureF(tvar); }
+                );
+    return free::wrapT(r);
 }
 
 template <typename A>
 STML<A> readTVar(const TVar<A>& tvar)
 {
-    free::ReadTVar<A, STML<A>> n;
-    n.tvar = tvar;
-    n.next = [](const A& val) {
-        return free::pureF(val);
-    };
-    return free::wrapT(n);
+    auto r = free::ReadTVar<A, STML<A>>::toAny(
+                tvar,
+                [](const A& val) { return free::pureF(val);  });
+
+    return free::wrapT(r);
 }
 
 template <typename A>
 STML<Unit> writeTVar(const TVar<A>& tvar,
                      const A& val)
 {
-    free::WriteTVar<A, STML<Unit>> n;
-    n.tvar = tvar;
-    n.val  = val;
-    n.next = [](const Unit& unit) {
-        return free::pureF(unit);
-    };
-    return free::wrapT(n);
+    auto r = free::WriteTVar<A, STML<Unit>>::toAny(
+                tvar,
+                val,
+                [](const Unit& unit) { return free::pureF(unit); }
+                );
+    return free::wrapT(r);
 }
 
 template <typename A>
