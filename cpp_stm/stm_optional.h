@@ -23,6 +23,26 @@ STML<B> withOptional(const STML<std::optional<A>>& opt,
     });
 }
 
+template <typename A, typename B>
+STML<std::optional<B>> tryTVar(const TVar<A>& tvar,
+                               const std::function<bool(A)>& tvarCond,
+                               const STML<std::optional<B>>& mb)
+{
+    return withTVar<A, std::optional<B>>(tvar, [=](const A& a)
+    {
+        return tvarCond(a)
+                ? mb
+                : pure<std::optional<B>>(std::nullopt);
+    });
+}
+
+template <typename A, typename B>
+STML<std::optional<B>> bindOptional(
+        const STML<std::optional<A>>& opt,
+        const std::function<STML<std::optional<B>>(A)>& f)
+{
+    return withOptional<A, std::optional<B>>(opt, pure<std::optional<B>>(std::nullopt), f);
+}
 
 template <typename A>
 STML<std::optional<A>> tryModifyTVar(
