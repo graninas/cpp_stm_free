@@ -4,11 +4,14 @@
 #include <functional>
 #include <any>
 #include <variant>
-#include <iostream>
 
 #include "tvar.h"
 #include "unit.h"
 #include "id.h"
+
+#ifdef STM_DEBUG
+#include <iostream>
+#endif
 
 namespace stm
 {
@@ -51,6 +54,65 @@ struct NewTVar
         };
         return m;
     }
+
+    ~NewTVar()
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: destructor, name: " << name << std::endl;
+#endif
+    }
+
+    NewTVar()
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: empty constructor " << std::endl;
+#endif
+    }
+
+    explicit NewTVar(const A& val,
+                     const std::string& name,
+                     const std::function<Next(TVar<A>)>& next)
+        : val(val)
+        , name(name)
+        , next(next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: constructor " << std::endl;
+#endif
+    }
+
+    NewTVar(const NewTVar<A, Next>& other)
+        : val(other.val)
+        , name(other.name)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: copy constructor, name: " << other.name << std::endl;
+#endif
+    }
+
+    NewTVar<A, Next>& operator=(NewTVar<A, Next> other)
+    {
+
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: copy assignment operator, name: " << other.name << std::endl;
+#endif
+        std::swap(val, other.val);
+        std::swap(name, other.name);
+        std::swap(next, other.next);
+        return *this;
+    }
+
+    NewTVar<A, Next>& operator=(NewTVar<A, Next>&& other)
+    {
+#ifdef STM_DEBUG
+        std::cout << "NewTVar: move assignment operator, name: " << other.name << std::endl;
+#endif
+        std::swap(val, other.val);
+        std::swap(name, other.name);
+        std::swap(next, other.next);
+        return *this;
+    }
 };
 
 template <typename A, typename Next>
@@ -74,6 +136,64 @@ struct ReadTVar
             return nextCopy(val2);
         };
         return m;
+    }
+
+    ReadTVar()
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: empty constructor " << std::endl;
+#endif
+    }
+
+    explicit ReadTVar(const TVar<A>& tvar,
+                      const std::function<Next(A)>& next)
+        : tvar(tvar)
+        , next(next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: constructor " << std::endl;
+#endif
+    }
+
+    ReadTVar(const ReadTVar<A, Next>& other)
+        : tvar(other.tvar)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: copy constructor, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+    }
+
+    ReadTVar<A, Next>& operator=(ReadTVar<A, Next> other)
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: copy assignment operator, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+        std::swap(tvar, other.tvar);
+        std::swap(next, other.next);
+        return *this;
+    }
+
+    ReadTVar<A, Next>& operator=(ReadTVar<A, Next>&& other)
+    {
+#ifdef STM_DEBUG
+        std::cout << "ReadTVar: move assignment operator, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+        std::swap(tvar, other.tvar);
+        std::swap(next, other.next);
+        return *this;
     }
 };
 
@@ -99,6 +219,70 @@ struct WriteTVar
             return nextCopy(unit);
         };
         return m;
+    }
+
+
+    WriteTVar()
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: empty constructor " << std::endl;
+#endif
+    }
+
+    explicit WriteTVar(const TVar<A>& tvar,
+                       const A& val,
+                       const std::function<Next(Unit)>& next)
+        : tvar(tvar)
+        , val(val)
+        , next(next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: constructor " << std::endl;
+#endif
+    }
+
+    WriteTVar(const WriteTVar<A, Next>& other)
+        : tvar(other.tvar)
+        , val(other.val)
+        , next(other.next)
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: copy constructor, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+    }
+
+    WriteTVar<A, Next>& operator=(WriteTVar<A, Next> other)
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: copy assignment operator, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+        std::swap(tvar, other.tvar);
+        std::swap(val, other.val);
+        std::swap(next, other.next);
+        return *this;
+    }
+
+    WriteTVar<A, Next>& operator=(WriteTVar<A, Next>&& other)
+    {
+#ifdef STM_DEBUG
+        std::cout << "WriteTVar: move assignment operator, tvar id: "
+                  << other.tvar.id
+                  << ", tvar name: "
+                  << other.tvar.name
+                  << std::endl;
+#endif
+        std::swap(tvar, other.tvar);
+        std::swap(val, other.val);
+        std::swap(next, other.next);
+        return *this;
     }
 };
 
