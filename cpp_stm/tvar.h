@@ -54,6 +54,19 @@ struct TVar
 //#endif
 //    }
 
+//    TVar(const TVar<T>&& other)
+//        : name(other.name)
+//        , id(other.id)
+//    {
+//#ifdef STM_DEBUG
+//        std::cout << "TVar: move constructor, tvar id: "
+//                  << other.id
+//                  << ", tvar name: "
+//                  << other.name
+//                  << std::endl;
+//#endif
+//    }
+
 //    TVar<T>& operator=(TVar<T> other)
 //    {
 //#ifdef STM_DEBUG
