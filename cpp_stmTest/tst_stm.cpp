@@ -343,10 +343,18 @@ void STMTest::churchTest()
 {
     stm::Context ctx;
 
-    stm::church::STML<stm::TVar<int>> trans
-            = stm::church::newTVar<int>(10);
+    auto trans1 = stm::church::newTVar<int>(10);
+    stm::TVar<int> tvar = stm::church::atomically(ctx, trans1);
 
-    stm::TVar<int> tvar = stm::church::atomically(ctx, trans);
+    auto trans2 = stm::church::readTVar(tvar);
+    int result1 = stm::church::atomically(ctx, trans2);
+    QVERIFY(result1 == 10);
+
+    auto trans3 = stm::church::writeTVar(tvar, 20);
+    stm::church::atomically(ctx, trans3);
+
+    int result2 = stm::church::atomically(ctx, trans2);
+    QVERIFY(result2 == 20);
 }
 
 QTEST_APPLESS_MAIN(STMTest)

@@ -44,11 +44,33 @@ STML<TVar<A>> newTVar(
         const A& val,
         const std::string& name = "")
 {
-    free::NewTVar<free::Any, TVar<A>> r =
-            free::NewTVar<A, TVar<A>>::toAny(
+    auto r = free::NewTVar<A, TVar<A>>::toAny(
                 val,
                 name,
                 [](const TVar<A>& tvar) { return tvar; }
+                );
+
+    return wrapChurch(r);
+}
+
+template <typename A>
+STML<A> readTVar(const TVar<A>& tvar)
+{
+    auto r = free::ReadTVar<A, A>::toAny(
+                tvar,
+                [](const A& val) { return val;  });
+
+    return wrapChurch(r);
+}
+
+template <typename A>
+STML<Unit> writeTVar(const TVar<A>& tvar,
+                     const A& val)
+{
+    auto r = free::WriteTVar<A, Unit>::toAny(
+                tvar,
+                val,
+                [](const Unit& unit) { return unit; }
                 );
     return wrapChurch(r);
 }
