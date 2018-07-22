@@ -7,7 +7,7 @@
 
 #include "stupid_guid.h"
 
-#define STM_DEBUG
+//#define STM_DEBUG
 
 #ifdef STM_DEBUG
 #include <iostream>
