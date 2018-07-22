@@ -22,7 +22,6 @@ SOURCES += \
 
 HEADERS += \
     tvar.h \
-    stm_free.h \
     stm_interpreter.h \
     context.h \
     stupid_guid.h \
@@ -31,7 +30,12 @@ HEADERS += \
     stm_runtime.h \
     unit.h \
     id.h \
-    stm_optional.h
+    stm_optional.h \
+    stm_free_church.h \
+    stm_free.h \
+    stm_free_functor.h \
+    stm_church.h \
+    stm_church_functor.h
 
 unix {
     target.path = /usr/lib

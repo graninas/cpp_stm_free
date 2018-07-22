@@ -46,7 +46,7 @@ struct NewTVar
         std::function<Next(TVar<A>)> nextCopy = next;
 
         NewTVar<Any, Next> m;
-        m.val = val;
+        m.val = val;  // cast to any
         m.name = name;
         m.next = [=](const TVarAny& tvarAny)
         {
@@ -147,7 +147,7 @@ struct ReadTVar
         m.tvar = tvar2;
         m.next = [=](const Any& val)
         {
-            A val2 = std::any_cast<A>(val);
+            A val2 = std::any_cast<A>(val); // cast from any
             return nextCopy(val2);
         };
         return m;
@@ -244,7 +244,7 @@ struct WriteTVar
 
         WriteTVar<Any, Next> m;
         m.tvar = tvar2;
-        m.val  = val;
+        m.val  = val; // cast to any
         m.next = [=](const Unit& unit)
         {
             return nextCopy(unit);

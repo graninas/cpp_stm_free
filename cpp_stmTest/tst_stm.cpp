@@ -7,6 +7,8 @@
 #include "common.h"
 #include "stupid_guid.h"
 #include "stm_free.h"
+#include "stm_free_church.h"
+#include "stm_church.h"
 #include "stm_bind.h"
 #include "stm_interpreter.h"
 #include "stm.h"
@@ -36,6 +38,8 @@ private Q_SLOTS:
     void bothTVarsCombinatorTest();
     void bothVoidedCombinatorTest();
     void modifyTVarTest();
+
+    void churchTest();
 };
 
 STMTest::STMTest()
@@ -333,6 +337,13 @@ void STMTest::modifyTVarTest()
 
     auto result = run(mResult);
     QVERIFY(result == 15);
+}
+
+void STMTest::churchTest()
+{
+    stm::church::STML<stm::TVar<int>> tvar = stm::church::newTVar<int>(10);
+
+
 }
 
 QTEST_APPLESS_MAIN(STMTest)
