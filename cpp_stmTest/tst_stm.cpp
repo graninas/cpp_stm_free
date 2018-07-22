@@ -341,9 +341,12 @@ void STMTest::modifyTVarTest()
 
 void STMTest::churchTest()
 {
-    stm::church::STML<stm::TVar<int>> tvar = stm::church::newTVar<int>(10);
+    stm::Context ctx;
 
+    stm::church::STML<stm::TVar<int>> trans
+            = stm::church::newTVar<int>(10);
 
+    stm::TVar<int> tvar = stm::church::atomically(ctx, trans);
 }
 
 QTEST_APPLESS_MAIN(STMTest)

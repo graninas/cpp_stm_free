@@ -25,7 +25,7 @@ RunResult<A> runSTMF(
         const free::STMF<A>& stmf)
 {
     StmfVisitor<A> visitor(runtime);
-    std::visit(visitor, stmf);
+    std::visit(visitor, stmf.stmf);
     return visitor.result;
 }
 
@@ -97,7 +97,8 @@ struct StmfVisitor
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
         _runtime.addTVarHandle(tvarId, tvarHandle);
         free::TVarAny tvar { f.name, tvarId };
-        result = runSTML<Ret>(_runtime, f.next(tvar));
+        result.retry = false;
+        result.result = f.next(tvar);
     }
 
     template <typename A>
@@ -106,7 +107,8 @@ struct StmfVisitor
 //        std::cout << "<" << _runtime.getUStamp() << "> ReadTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
         TVarHandle tvarHandle = _runtime.getTVarHandle(f.tvar.id);
-        result = runSTML<Ret>(_runtime, f.next(tvarHandle.data));
+        result.retry = false;
+        result.result = f.next(tvarHandle.data);
     }
 
     template <typename A>
@@ -115,7 +117,8 @@ struct StmfVisitor
 //        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
         _runtime.setTVarHandleData(f.tvar.id, f.val);
-        result = runSTML<Ret>(_runtime, f.next(unit));
+        result.retry = false;
+        result.result = f.next(unit);
     }
 
     template <typename A>
