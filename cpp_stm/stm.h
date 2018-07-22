@@ -4,10 +4,11 @@
 #include <tuple>
 
 #include "context.h"
-#include "stm_runtime.h"
+#include "tvar.h"
 #include "stm_free.h"
 #include "stm_bind.h"
-#include "tvar.h"
+#include "stm_runtime.h"
+#include "stm_interpreter.h"
 
 namespace stm
 {
@@ -94,7 +95,12 @@ template <typename A>
 A atomically(Context& context,
              const STML<A>& stml)
 {
-    return free::runSTM(context, stml);
+    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
+    {
+        return free::runSTML<A, free::StmlVisitor>(runtime, stml);
+    };
+
+    return runSTM<A>(context, runner);
 }
 
 // Special version of newTVar

@@ -6,15 +6,16 @@
 #include <iostream>
 
 #include "context.h"
-#include "stm_interpreter.h"
 
 namespace stm
 {
-namespace free
-{
 
 template <typename A>
-A runSTM(Context& context, const STML<A>& stml)
+using RunnerFunc = std::function<RunResult<A>(AtomicRuntime&)>;
+
+template <typename A>
+A runSTM(Context& context,
+         const RunnerFunc<A>& runner)
 {
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 100);
@@ -25,8 +26,7 @@ A runSTM(Context& context, const STML<A>& stml)
     {
         auto snapshot = context.takeSnapshot();
         AtomicRuntime runtime {context, ustamp, snapshot};
-        RunResult<A> runResult = runSTML<A, StmlVisitor>(runtime, stml);
-
+        RunResult<A> runResult = runner(runtime);
         if (runResult.retry)
         {
             auto t = backoffIntervalDice();
@@ -43,7 +43,6 @@ A runSTM(Context& context, const STML<A>& stml)
     }
 }
 
-} // namespace free
 } // namespace stm
 
 #endif // STM_RUNTIME_H

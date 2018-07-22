@@ -35,7 +35,8 @@ HEADERS += \
     stm_free.h \
     stm_free_functor.h \
     stm_church.h \
-    stm_church_functor.h
+    stm_church_functor.h \
+    stm_church_interpreter.h
 
 unix {
     target.path = /usr/lib

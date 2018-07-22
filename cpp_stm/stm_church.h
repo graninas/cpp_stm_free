@@ -6,6 +6,9 @@
 #include "context.h"
 #include "stm_free_church.h"
 #include "stm_free_functor.h"
+#include "stm_church_functor.h"
+#include "stm_church_interpreter.h"
+#include "stm_runtime.h"
 
 namespace stm
 {
@@ -29,7 +32,7 @@ STML<A> wrapChurch(const Method<free::Any, A>& method)
                  const std::function<free::Any(free::STMF<free::Any>)>& r)
     {
         free::STMF<A> f { method };
-        free::STMF<free::Any> mapped = free::fmap(p, f);
+        free::STMF<free::Any> mapped = free::fmap<A, free::Any>(p, f);
         return r(mapped);
     };
 
@@ -95,6 +98,21 @@ STML<A> pure(const A& a)
         return p(a);
     };
     return n;
+}
+
+
+/// Church STML evaluation
+
+template <typename A>
+A atomically(Context& context,
+             const STML<A>& stml)
+{
+    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
+    {
+        return runSTML<A>(runtime, stml);
+    };
+
+    return runSTM<A>(context, runner);
 }
 
 } // namespace church
