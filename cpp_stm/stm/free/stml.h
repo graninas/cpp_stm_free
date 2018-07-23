@@ -4,7 +4,6 @@
 #include "../tvar.h"
 #include "../types.h"
 #include "../stmf/stmf.h"
-#include "../impl/runtime.h"
 
 #ifdef STM_DEBUG
 #include <iostream>
@@ -20,19 +19,9 @@ namespace free
 template <typename A>
 struct STML;
 
-template <typename A, typename B>
-using ArrowFunc = std::function<STML<B>(A)>;
-
 // forward declaration for bind
 template <typename A, typename B>
 struct BindStmlVisitor;
-
-// forward declaration for runner
-template <typename Ret>
-struct StmlVisitor;
-
-template <typename Ret, template <typename> class Visitor>
-RunResult<Ret> runSTML(AtomicRuntime& runtime, const STML<Ret>& stml);
 
 // Free methods
 
@@ -114,18 +103,6 @@ struct STML
     static STML<A> retry()
     {
         return STML<A>::wrap(stmf::RetryA<STML<A>> {});
-    }
-
-    static A atomically(
-            Context& context,
-            const STML<A>& stml)
-    {
-        RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
-        {
-            return runSTML<A, StmlVisitor>(runtime, stml);
-        };
-
-        return runSTM<A>(context, runner);
     }
 };
 

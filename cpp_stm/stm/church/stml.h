@@ -6,7 +6,6 @@
 #include "../stmf/stmf.h"
 #include "../stmf/functor.h"
 //#include "bind.h"
-#include "../impl/runtime.h"
 
 #ifdef STM_DEBUG
 #include <iostream>
@@ -24,14 +23,6 @@ namespace church
 // forward declaration
 template <typename A>
 struct STML;
-
-//// forward declaration for runner
-template <typename A>
-struct StmfVisitor;
-
-template <typename A>
-RunResult<A> runSTML(AtomicRuntime& runtime,
-                     const STML<A>& stml);
 
 // newtype F f a = F { runF :: forall r. (a -> r) -> (f r -> r) -> r }
 
@@ -71,7 +62,7 @@ struct STML
                     [](const TVar<A>& tvar) { return tvar; }
                     );
 
-        return wrap(r);
+        return STML<TVar<A>>::wrap(r);
     }
 
     static STML<A> readTVar(const TVar<A>& tvar)
@@ -80,7 +71,7 @@ struct STML
                     tvar,
                     [](const A& val) { return val;  });
 
-        return wrap(r);
+        return STML<A>::wrap(r);
     }
 
     static STML<Unit> writeTVar(const TVar<A>& tvar,
@@ -91,7 +82,7 @@ struct STML
                     val,
                     [](const Unit& unit) { return unit; }
                     );
-        return wrap(r);
+        return STML<Unit>::wrap(r);
     }
 
     static STML<A> retry()
@@ -130,18 +121,6 @@ struct STML
             return p(a);
         };
         return n;
-    }
-
-    static A atomically(
-            Context& context,
-            const STML<A>& stml)
-    {
-        RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
-        {
-            return runSTML<A>(runtime, stml);
-        };
-
-        return runSTM<A>(context, runner);
     }
 };
 

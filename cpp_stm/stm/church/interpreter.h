@@ -3,11 +3,16 @@
 
 #include "stml.h"
 #include "../context.h"
+#include <cstring>
 
 namespace stm
 {
 namespace church
 {
+
+// Forward declaration
+template <typename Ret>
+struct StmfVisitor;
 
 template <typename A>
 RunResult<A> runSTMF(
@@ -86,7 +91,7 @@ struct StmfVisitor
 
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
         _runtime.addTVarHandle(tvarId, tvarHandle);
-        free::TVarAny tvar { f.name, tvarId };
+        TVarAny tvar { f.name, tvarId };
         result.retry = false;
         result.result = f.next(tvar);
     }

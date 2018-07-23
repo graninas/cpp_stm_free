@@ -9,6 +9,10 @@ namespace stm
 namespace free
 {
 
+// Forward declaration
+template <typename Ret>
+struct StmlVisitor;
+
 template <typename Ret, template <typename> class Visitor>
 RunResult<Ret> runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
 {

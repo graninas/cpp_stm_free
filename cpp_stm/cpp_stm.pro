@@ -31,8 +31,6 @@ HEADERS += \
     stm/free/stml.h \
     stm/free/bind.h \
     stm/free/interpreter.h \
-    stm/generic/optional.h \
-    stm/generic/stm.h \
     stm/church/stml.h \
     stm/church/interpreter.h \
     stm/church/functor.h \
@@ -44,3 +42,5 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+DISTFILES +=

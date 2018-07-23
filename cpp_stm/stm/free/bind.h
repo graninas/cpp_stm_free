@@ -8,6 +8,9 @@ namespace stm
 namespace free
 {
 
+template <typename A, typename B>
+using ArrowFunc = std::function<STML<B>(A)>;
+
 template <typename A, typename B,
           template <typename, typename> class Visitor>
 STML<B> runBind(const STML<A>& stml, const ArrowFunc<A, B>& f)
