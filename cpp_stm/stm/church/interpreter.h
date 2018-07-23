@@ -24,13 +24,6 @@ RunResult<A> runSTMF(
     return visitor.result;
 }
 
-//type f :~> g = forall a. f a -> g a
-
-//foldMap :: Monad g => (forall a. f a -> g a) -> F f a -> g a
-
-//foldMap :: Monad g => f :~> g -> F f :~> g
-//foldMap f (F k) = k return (join . f)
-
 template <typename A>
 RunResult<A> runSTML(AtomicRuntime& runtime,
                      const STML<A>& stml)

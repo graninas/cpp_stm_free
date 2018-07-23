@@ -6,8 +6,8 @@
 
 namespace stm {
 
-using namespace free;
-//using namespace church;
+//using namespace free;
+using namespace church;
 
 } // namespace stm
 

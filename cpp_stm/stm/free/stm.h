@@ -8,8 +8,10 @@
 #include "bind.h"
 #include "interpreter.h"
 
-namespace stm {
-namespace free {
+namespace stm
+{
+namespace free
+{
 
 // STML generic monadic interface.
 

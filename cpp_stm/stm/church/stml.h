@@ -5,7 +5,6 @@
 #include "../types.h"
 #include "../stmf/stmf.h"
 #include "../stmf/functor.h"
-//#include "bind.h"
 
 #ifdef STM_DEBUG
 #include <iostream>

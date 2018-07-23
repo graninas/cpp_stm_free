@@ -7,10 +7,6 @@ namespace stm
 {
 namespace church
 {
-// newtype F f a = F { runF :: forall r. (a -> r) -> (f r -> r) -> r }
-
-//instance Functor (F f) where
-//    fmap f (F k) = F (\p s -> k (p . f) s)
 
 template <typename A, typename B>
 STML<B> fmap(
