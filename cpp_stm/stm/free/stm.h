@@ -16,10 +16,13 @@ namespace free
 // STML generic monadic interface.
 
 template <typename A, typename B>
+//STML<B> bind(const STML<A>& ma,
 STML<B> bind(const STML<A> ma,
                  const std::function<STML<B>(A)>& f)
 {
-    return STML<A>::bind(ma, f);
+    BindStmlVisitor<A, B> visitor(f);
+    std::visit(visitor, ma.stml);
+    return visitor.result;
 }
 
 template <typename A>
@@ -28,16 +31,22 @@ STML<A> join(const STML<STML<A>> mma)
     return bind<STML<A>, A>(mma, [](const STML<A>& ma) { return ma; });
 }
 
+template <typename A, template <typename, typename> class Method>
+static STML<A> wrap(const Method<Any, STML<A>>& method)
+{
+    return { FreeF<A> { stmf::STMF<STML<A>> { method } } };
+}
+
 template <typename A>
 STML<A> pure(const A& a)
 {
-    return STML<A>::pure(a);
+    return { PureF<A>{ a } };
 }
 
 template <typename A>
 STML<A> retry()
 {
-    return STML<A>::retry();
+    return wrap(stmf::RetryA<STML<A>> {});
 }
 
 template <typename A>
@@ -45,13 +54,24 @@ STML<TVar<A>> newTVar(
         const A& val,
         const std::string& name = "")
 {
-    return STML<A>::newTVar(val, name);
+    auto r = stmf::NewTVar<A, STML<TVar<A>>>::toAny(
+                val,
+                name,
+                [](const TVar<A>& tvar)
+                    { return pure<TVar<A>>(tvar); }
+                );
+    return wrap(r);
 }
 
 template <typename A>
 STML<A> readTVar(const TVar<A>& tvar)
 {
-    return STML<A>::readTVar(tvar);
+    auto r = stmf::ReadTVar<A, STML<A>>::toAny(
+                tvar,
+                [](const A& a)
+                    { return pure<A>(a); }
+                );
+    return wrap(r);
 }
 
 template <typename A>
@@ -59,7 +79,13 @@ STML<Unit> writeTVar(
         const TVar<A>& tvar,
         const A& val)
 {
-    return STML<A>::writeTVar(tvar, val);
+    auto r = stmf::WriteTVar<A, STML<Unit>>::toAny(
+                tvar,
+                val,
+                [](const Unit&)
+                    { return pure<Unit>(unit); }
+                );
+    return wrap(r);
 }
 
 template <typename A>
@@ -211,7 +237,7 @@ STML<B> sequence(
 template <typename A>
 STML<Unit> voided(const STML<A>& ma)
 {
-    return sequence<A, Unit>(ma, STML<Unit>::pure(unit));
+    return sequence<A, Unit>(ma, pure<Unit>(unit));
 }
 
 template <typename A, typename B>
@@ -241,7 +267,7 @@ STML<Unit> when(const STML<bool>& mCond,
 {
     return ifThenElse<Unit>(mCond,
                             voided<A>(ma),
-                            STML<Unit>::pure(unit));
+                            pure<Unit>(unit));
 }
 
 template <typename A>
@@ -249,7 +275,7 @@ STML<Unit> unless(const STML<bool>& mCond,
                   const STML<A>& ma)
 {
     return ifThenElse<Unit>(mCond,
-                            STML<Unit>::pure(unit),
+                            pure<Unit>(unit),
                             voided<A>(ma));
 }
 

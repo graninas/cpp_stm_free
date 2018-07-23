@@ -6,24 +6,12 @@
 #include "../stmf/stmf.h"
 #include "../stmf/functor.h"
 
-#ifdef STM_DEBUG
-#include <iostream>
-#endif
-
 namespace stm
 {
 namespace church
 {
 
 // STM Free Church-encoded
-
-// Church STML algebraic data type
-
-// forward declaration
-template <typename A>
-struct STML;
-
-// newtype F f a = F { runF :: forall r. (a -> r) -> (f r -> r) -> r }
 
 template <typename A>
 struct STML
@@ -34,102 +22,7 @@ struct STML
             std::function<Any(stmf::STMF<Any>)>
         )> runF;
 
-
-    template <template <typename, typename> class Method>
-    static STML<A> wrap(const Method<Any, A>& method)
-    {
-        STML<A> n;
-
-        n.runF = [=](const std::function<Any(A)>& p,
-                     const std::function<Any(stmf::STMF<Any>)>& r)
-        {
-            stmf::STMF<A> f { method };
-            stmf::STMF<Any> mapped = stmf::fmap<A, Any>(p, f);
-            return r(mapped);
-        };
-
-        return n;
-    }
-
-    static STML<TVar<A>> newTVar(
-            const A& val,
-            const std::string& name = "")
-    {
-        auto r = stmf::NewTVar<A, TVar<A>>::toAny(
-                    val,
-                    name,
-                    [](const TVar<A>& tvar) { return tvar; }
-                    );
-
-        return STML<TVar<A>>::wrap(r);
-    }
-
-    static STML<A> readTVar(const TVar<A>& tvar)
-    {
-        auto r = stmf::ReadTVar<A, A>::toAny(
-                    tvar,
-                    [](const A& val) { return val;  });
-
-        return STML<A>::wrap(r);
-    }
-
-    static STML<Unit> writeTVar(const TVar<A>& tvar,
-                         const A& val)
-    {
-        auto r = stmf::WriteTVar<A, Unit>::toAny(
-                    tvar,
-                    val,
-                    [](const Unit& unit) { return unit; }
-                    );
-        return STML<Unit>::wrap(r);
-    }
-
-    static STML<A> retry()
-    {
-        return STML<A>::wrap(stmf::RetryA<A> {});
-    }
-
-    template <typename B>
-    static STML<B> bind(
-// TODO: &
-//            const STML<A>& ma,
-            const STML<A> ma,
-            const std::function<STML<B>(A)>& f)
-    {
-        STML<B> n;
-        n.runF = [=](const std::function<Any(B)>& p,
-                     const std::function<Any(stmf::STMF<Any>)>& r)
-        {
-            auto fst = [=](const A& a)
-            {
-                STML<B> internal = f(a);
-                return internal.runF(p, r);
-            };
-
-            return ma.runF(fst, r);
-        };
-        return n;
-    }
-
-    static STML<A> pure(const A& a)
-    {
-        STML<A> n;
-        n.runF = [=](const std::function<Any(A)>& p,
-                     const std::function<Any(stmf::STMF<Any>)>&)
-        {
-            return p(a);
-        };
-        return n;
-    }
 };
-
-// Wrappers
-
-//template <typename Ret, template <typename, typename> class Method>
-//STML<Ret> wrapA(const Method<Any, STML<Ret>>& method)
-//{
-//    return { FreeF<Ret> { STMF<STML<Ret>> { method } } };
-//}
 
 } // namespace church
 } // namespace stm

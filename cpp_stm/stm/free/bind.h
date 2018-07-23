@@ -8,6 +8,10 @@ namespace stm
 namespace free
 {
 
+// forward declaration for bind
+template <typename A, typename B>
+struct BindStmlVisitor;
+
 template <typename A, typename B>
 using ArrowFunc = std::function<STML<B>(A)>;
 

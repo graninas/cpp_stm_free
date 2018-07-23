@@ -7,14 +7,29 @@
 #include "stml.h"
 #include "interpreter.h"
 
-namespace stm {
-namespace church {
+namespace stm
+{
+namespace church
+{
 
 template <typename A, typename B>
+//STML<B> bind(const STML<A>& ma,
 STML<B> bind(const STML<A> ma,
                  const std::function<STML<B>(A)>& f)
 {
-    return STML<A>::bind(ma, f);
+    STML<B> n;
+    n.runF = [=](const std::function<Any(B)>& p,
+                 const std::function<Any(stmf::STMF<Any>)>& r)
+    {
+        auto fst = [=](const A& a)
+        {
+            STML<B> internal = f(a);
+            return internal.runF(p, r);
+        };
+
+        return ma.runF(fst, r);
+    };
+    return n;
 }
 
 template <typename A>
@@ -26,13 +41,35 @@ STML<A> join(const STML<STML<A>> mma)
 template <typename A>
 STML<A> pure(const A& a)
 {
-    return STML<A>::pure(a);
+    STML<A> n;
+    n.runF = [=](const std::function<Any(A)>& p,
+                 const std::function<Any(stmf::STMF<Any>)>&)
+    {
+        return p(a);
+    };
+    return n;
+}
+
+template <typename A, template <typename, typename> class Method>
+STML<A> wrap(const Method<Any, A>& method)
+{
+    STML<A> n;
+
+    n.runF = [=](const std::function<Any(A)>& p,
+                 const std::function<Any(stmf::STMF<Any>)>& r)
+    {
+        stmf::STMF<A> f { method };
+        stmf::STMF<Any> mapped = stmf::fmap<A, Any>(p, f);
+        return r(mapped);
+    };
+
+    return n;
 }
 
 template <typename A>
 STML<A> retry()
 {
-    return STML<A>::retry();
+    return wrap(stmf::RetryA<A> {});
 }
 
 template <typename A>
@@ -40,13 +77,23 @@ STML<TVar<A>> newTVar(
         const A& val,
         const std::string& name = "")
 {
-    return STML<A>::newTVar(val, name);
+    auto r = stmf::NewTVar<A, TVar<A>>::toAny(
+                val,
+                name,
+                [](const TVar<A>& tvar) { return tvar; }
+                );
+
+    return wrap(r);
 }
 
 template <typename A>
 STML<A> readTVar(const TVar<A>& tvar)
 {
-    return STML<A>::readTVar(tvar);
+    auto r = stmf::ReadTVar<A, A>::toAny(
+                tvar,
+                [](const A& val) { return val;  });
+
+    return wrap(r);
 }
 
 template <typename A>
@@ -54,7 +101,12 @@ STML<Unit> writeTVar(
         const TVar<A>& tvar,
         const A& val)
 {
-    return STML<A>::writeTVar(tvar, val);
+    auto r = stmf::WriteTVar<A, Unit>::toAny(
+                tvar,
+                val,
+                [](const Unit& unit) { return unit; }
+                );
+    return wrap(r);
 }
 
 template <typename A>
@@ -206,7 +258,7 @@ STML<B> sequence(
 template <typename A>
 STML<Unit> voided(const STML<A>& ma)
 {
-    return sequence<A, Unit>(ma, STML<Unit>::pure(unit));
+    return sequence<A, Unit>(ma, pure<Unit>(unit));
 }
 
 template <typename A, typename B>
@@ -236,7 +288,7 @@ STML<Unit> when(const STML<bool>& mCond,
 {
     return ifThenElse<Unit>(mCond,
                             voided<A>(ma),
-                            STML<Unit>::pure(unit));
+                            pure<Unit>(unit));
 }
 
 template <typename A>
@@ -244,7 +296,7 @@ STML<Unit> unless(const STML<bool>& mCond,
                   const STML<A>& ma)
 {
     return ifThenElse<Unit>(mCond,
-                            STML<Unit>::pure(unit),
+                            pure<Unit>(unit),
                             voided<A>(ma));
 }
 
