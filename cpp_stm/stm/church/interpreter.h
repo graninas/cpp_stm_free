@@ -1,28 +1,18 @@
 #ifndef STM_CHURCH_INTERPRETER_H
 #define STM_CHURCH_INTERPRETER_H
 
-#include <functional>
-#include <any>
-#include <variant>
-#include <iostream>
-
-#include "stm_free_church.h"
-#include "stm_church.h"
-#include "context.h"
+#include "stml.h"
+#include "../context.h"
 
 namespace stm
 {
 namespace church
 {
 
-//// forward declaration;
-template <typename A>
-struct StmfVisitor;
-
 template <typename A>
 RunResult<A> runSTMF(
         AtomicRuntime& runtime,
-        const free::STMF<A>& stmf)
+        const stmf::STMF<A>& stmf)
 {
     StmfVisitor<A> visitor(runtime);
     std::visit(visitor, stmf.stmf);
@@ -40,11 +30,11 @@ template <typename A>
 RunResult<A> runSTML(AtomicRuntime& runtime,
                      const STML<A>& stml)
 {
-    std::function<free::Any(A)>
+    std::function<Any(A)>
             pureAny = [](const A& a) { return a; }; // cast to any
 
-    std::function<free::Any(free::STMF<free::Any>)> g
-            = [&](const free::STMF<free::Any>& stmf)
+    std::function<Any(stmf::STMF<Any>)> g
+            = [&](const stmf::STMF<Any>& stmf)
     {
         auto runnerResult = runSTMF(runtime, stmf);
         if (runnerResult.retry)
@@ -61,7 +51,7 @@ RunResult<A> runSTML(AtomicRuntime& runtime,
     A result;
     try
     {
-        free::Any anyResult = stml.runF(pureAny, g);
+        Any anyResult = stml.runF(pureAny, g);
         result = std::any_cast<A>(anyResult);
     }
     catch(std::runtime_error err)
@@ -88,7 +78,7 @@ struct StmfVisitor
     RunResult<Ret> result;
 
     template <typename A>
-    void operator()(const free::NewTVar<A, Ret>& f)
+    void operator()(const stmf::NewTVar<A, Ret>& f)
     {
         auto tvarId = _runtime.newGUID();
 
@@ -102,7 +92,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const free::ReadTVar<A, Ret>& f)
+    void operator()(const stmf::ReadTVar<A, Ret>& f)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> ReadTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
@@ -112,7 +102,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const free::WriteTVar<A, Ret>& f)
+    void operator()(const stmf::WriteTVar<A, Ret>& f)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
@@ -122,7 +112,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const free::Retry<A, Ret>&)
+    void operator()(const stmf::Retry<A, Ret>&)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> Retry." << std::endl;
 

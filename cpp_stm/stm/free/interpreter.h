@@ -1,14 +1,8 @@
-#ifndef STM_INTERPRETER_H
-#define STM_INTERPRETER_H
+#ifndef STM_FREE_INTERPRETER_H
+#define STM_FREE_INTERPRETER_H
 
-#include <functional>
-#include <any>
-#include <variant>
-#include <iostream>
-
-#include "tvar.h"
-#include "stm_free.h"
-#include "context.h"
+#include "stml.h"
+#include "../context.h"
 
 namespace stm
 {
@@ -23,10 +17,6 @@ RunResult<Ret> runSTML(AtomicRuntime& runtime, const STML<Ret>& stml)
     return visitor.result;
 }
 
-// forward declaration;
-template <typename Ret>
-struct StmlVisitor;
-
 template <typename Ret>
 struct StmfVisitor
 {
@@ -40,7 +30,7 @@ struct StmfVisitor
     RunResult<Ret> result;
 
     template <typename A>
-    void operator()(const NewTVar<A, STML<Ret>>& f)
+    void operator()(const stmf::NewTVar<A, STML<Ret>>& f)
     {
         auto tvarId = _runtime.newGUID();
 
@@ -53,7 +43,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const ReadTVar<A, STML<Ret>>& f)
+    void operator()(const stmf::ReadTVar<A, STML<Ret>>& f)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> ReadTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
@@ -62,7 +52,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const WriteTVar<A, STML<Ret>>& f)
+    void operator()(const stmf::WriteTVar<A, STML<Ret>>& f)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
@@ -71,7 +61,7 @@ struct StmfVisitor
     }
 
     template <typename A>
-    void operator()(const Retry<A, STML<Ret>>&)
+    void operator()(const stmf::Retry<A, STML<Ret>>&)
     {
 //        std::cout << "<" << _runtime.getUStamp() << "> Retry." << std::endl;
 
@@ -109,4 +99,4 @@ struct StmlVisitor
 } // namespace free
 } // namespace stm
 
-#endif // STM_INTERPRETER_H
+#endif // STM_FREE_INTERPRETER_H

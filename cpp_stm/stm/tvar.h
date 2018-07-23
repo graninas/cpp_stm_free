@@ -1,11 +1,11 @@
-#ifndef TVAR_H
-#define TVAR_H
+#ifndef STM_TVAR_H
+#define STM_TVAR_H
 
 #include <string>
 #include <functional>
 #include <any>
 
-#include "stupid_guid.h"
+#include "./impl/stupid_guid.h"
 
 //#define STM_DEBUG
 
@@ -111,4 +111,4 @@ struct TVar
 
 } // namespace stm
 
-#endif // TVAR_H
+#endif // STM_TVAR_H

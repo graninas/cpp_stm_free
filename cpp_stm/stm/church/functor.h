@@ -1,13 +1,7 @@
 #ifndef STM_CHURCH_FUNCTOR_H
 #define STM_CHURCH_FUNCTOR_H
 
-#include <functional>
-#include <any>
-#include <variant>
-#include <iostream>
-
-#include "tvar.h"
-#include "stm_free_church.h"
+#include "stml.h"
 
 namespace stm
 {
@@ -26,8 +20,8 @@ STML<B> fmap(
     STML<B> n;
 
     n.runF = [=](
-            const std::function<free::Any(B)>& p,
-            const std::function<free::Any(free::STMF<free::Any>)>& s)
+            const std::function<Any(B)>& p,
+            const std::function<Any(stmf::STMF<Any>)>& s)
     {
         auto composed = [=](const A& a)
         {

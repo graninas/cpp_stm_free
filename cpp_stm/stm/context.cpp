@@ -1,6 +1,5 @@
 #include "context.h"
 
-
 namespace stm
 {
 

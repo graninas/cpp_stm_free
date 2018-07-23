@@ -1,23 +1,17 @@
-#ifndef STM_OPTIONAL_H
-#define STM_OPTIONAL_H
-
-#include <tuple>
-#include <optional>
-
-#include <stm.h>
-
-namespace stm
-{
-
-/// STML monadic interface
+// STML generic monadic interface.
 // Optional-aware functions
 
+// This header is undefined.
+// Consider to use these headers instead:
+// stm/free/stm.h     - Free monad STM
+// stm/church/stm.h   - Church encoded Free monad STM
+// stm/stm.h          - Default Free monad STM
 template <typename A, typename B>
 STML<B> withOptional(const STML<std::optional<A>>& opt,
                      const STML<B>& onNullOpt,
                      const std::function<STML<B>(A)>& f)
 {
-    return stm::bind<std::optional<A>, B>(opt, [=](const std::optional<A>& optA)
+    return bind<std::optional<A>, B>(opt, [=](const std::optional<A>& optA)
     {
         return optA.has_value() ? f(optA.value()) : onNullOpt;
     });
@@ -58,8 +52,3 @@ STML<std::optional<A>> tryModifyTVar(
                 : pure<std::optional<A>>(optNewA);
     });
 }
-
-
-} // namespace stm
-
-#endif // STM_OPTIONAL_H

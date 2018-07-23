@@ -1,5 +1,5 @@
-#ifndef CONTEXT_H
-#define CONTEXT_H
+#ifndef STM_CONTEXT_H
+#define STM_CONTEXT_H
 
 #include <map>
 #include <any>
@@ -7,7 +7,7 @@
 #include <random>
 #include <optional>
 
-#include "stupid_guid.h"
+#include "./impl/stupid_guid.h"
 #include "tvar.h"
 
 namespace stm
@@ -75,4 +75,4 @@ struct RunResult
 
 } // namespace stm
 
-#endif // CONTEXT_H
+#endif // STM_CONTEXT_H

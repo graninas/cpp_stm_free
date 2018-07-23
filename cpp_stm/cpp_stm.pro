@@ -17,26 +17,28 @@ INCLUDEPATH += /usr/include/x86_64-linux-gnu/c++/7
 INCLUDEPATH += /usr/include/c++/7
 
 SOURCES += \
-    context.cpp \
-    stupid_guid.cpp
+    stm/context.cpp \
+    stm/impl/stupid_guid.cpp
 
 HEADERS += \
-    tvar.h \
-    stm_interpreter.h \
-    context.h \
-    stupid_guid.h \
-    stm_bind.h \
-    stm.h \
-    stm_runtime.h \
-    unit.h \
-    id.h \
-    stm_optional.h \
-    stm_free_church.h \
-    stm_free.h \
-    stm_free_functor.h \
-    stm_church.h \
-    stm_church_functor.h \
-    stm_church_interpreter.h
+    stm/tvar.h \
+    stm/context.h \
+    stm/impl/stupid_guid.h \
+    stm/stmf/functor.h \
+    stm/stmf/stmf.h \
+    stm/impl/runtime.h \
+    stm/types.h \
+    stm/free/stml.h \
+    stm/free/bind.h \
+    stm/free/interpreter.h \
+    stm/generic/optional.h \
+    stm/generic/stm.h \
+    stm/church/stml.h \
+    stm/church/interpreter.h \
+    stm/church/functor.h \
+    stm/free/stm.h \
+    stm/church/stm.h \
+    stm/stm.h
 
 unix {
     target.path = /usr/lib

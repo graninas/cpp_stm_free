@@ -1,11 +1,11 @@
-#ifndef STM_RUNTIME_H
-#define STM_RUNTIME_H
+#ifndef STM_IMPL_RUNTIME_H
+#define STM_IMPL_RUNTIME_H
 
 #include <chrono>
 #include <thread>
 #include <iostream>
 
-#include "context.h"
+#include "../context.h"
 
 namespace stm
 {
@@ -45,4 +45,4 @@ A runSTM(Context& context,
 
 } // namespace stm
 
-#endif // STM_RUNTIME_H
+#endif // STM_IMPL_RUNTIME_H

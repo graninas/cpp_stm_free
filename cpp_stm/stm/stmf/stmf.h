@@ -1,13 +1,7 @@
-#ifndef STM_FREE_H
-#define STM_FREE_H
+#ifndef STM_STMF_STMF_H
+#define STM_STMF_STMF_H
 
-#include <functional>
-#include <any>
-#include <variant>
-
-#include "tvar.h"
-#include "unit.h"
-#include "id.h"
+#include "../types.h"
 
 #ifdef STM_DEBUG
 #include <iostream>
@@ -15,19 +9,8 @@
 
 namespace stm
 {
-
-namespace free
+namespace stmf
 {
-// STM Free
-
-// Short definitions
-using Any = std::any;
-using TVarAny = TVar<std::any>;
-
-// Forward declaration, in stm namespace
-
-template <typename A>
-struct STML;
 
 // STM methods
 
@@ -354,53 +337,16 @@ using RetryA = Retry<Any, Next>;
 template <class Ret>
 struct STMF
 {
-    std::variant<NewTVarA<Ret>, ReadTVarA<Ret>, WriteTVarA<Ret>, RetryA<Ret>> stmf;
+    std::variant<
+        NewTVarA<Ret>,
+        ReadTVarA<Ret>,
+        WriteTVarA<Ret>,
+        RetryA<Ret>
+    > stmf;
 };
 
-// Free methods
-
-template <typename Ret>
-struct PureF
-{
-    Ret ret;
-};
-
-template <typename Ret>
-struct FreeF
-{
-    STMF<STML<Ret>> stmf;
-};
-
-// Recursive Free STML algebraic data type
-
-template <typename Ret>
-struct STML
-{
-    std::variant<PureF<Ret>, FreeF<Ret>> stml;
-};
-
-// Wrappers
-
-template <typename Ret>
-STML<Ret> pureF(const Ret& a)
-{
-    return { PureF<Ret> { a } };
-}
-
-template <typename Ret, template <typename, typename> class Method>
-STML<Ret> wrapT(const Method<Any, STML<Ret>>& method)
-{
-    return { FreeF<Ret> { STMF<STML<Ret>> { method } } };
-}
-
-template <typename Ret, template <typename, typename> class Method>
-STML<Ret> wrapA(const Method<Any, STML<Ret>>& method)
-{
-    return { FreeF<Ret> { STMF<STML<Ret>> { method } } };
-}
-
-} // namespace free
+} // namespace stmf
 } // namespace stm
 
-#endif // STM_FREE_H
+#endif // STM_STMF_STMF_H
 

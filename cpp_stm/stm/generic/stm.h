@@ -1,30 +1,16 @@
-#ifndef STM_H
-#define STM_H
+// STML generic monadic interface.
 
-#include <tuple>
-
-#include "context.h"
-#include "tvar.h"
-#include "stm_free.h"
-#include "stm_bind.h"
-#include "stm_runtime.h"
-#include "stm_interpreter.h"
-
-namespace stm
-{
-
-/// STML monadic interface
-
-template <typename A>
-using STML = free::STML<A>;
+// This header is undefined.
+// Consider to use these headers instead:
+// stm/free/stm.h     - Free monad STM
+// stm/church/stm.h   - Church encoded Free monad STM
+// stm/stm.h          - Default Free monad STM
 
 template <typename A, typename B>
 STML<B> bind(const STML<A> ma,
-             const std::function<STML<B>(A)>& f)
+                 const std::function<STML<B>(A)>& f)
 {
-    free::BindStmlVisitor<A, B> visitor(f);
-    std::visit(visitor, ma.stml);
-    return visitor.result;
+    return STML<A>::bind(ma, f);
 }
 
 template <typename A>
@@ -36,52 +22,41 @@ STML<A> join(const STML<STML<A>> mma)
 template <typename A>
 STML<A> pure(const A& a)
 {
-    return { free::PureF<A>{ a } };
+    return STML<A>::pure(a);
 }
 
 template <typename A>
 STML<A> retry()
 {
-    return free::wrapA(free::RetryA<STML<A>> {});
+    return STML<A>::retry();
 }
 
 template <typename A>
-STML<TVar<A>> newTVar(const A& val,
-                      const std::string& name = "")
+STML<TVar<A>> newTVar(
+        const A& val,
+        const std::string& name = "")
 {
-    auto r = free::NewTVar<A, STML<TVar<A>>>::toAny(
-                val,
-                name,
-                [](const TVar<A>& tvar) { return free::pureF(tvar); }
-                );
-    return free::wrapT(r);
+    return STML<A>::newTVar(val, name);
 }
 
 template <typename A>
 STML<A> readTVar(const TVar<A>& tvar)
 {
-    auto r = free::ReadTVar<A, STML<A>>::toAny(
-                tvar,
-                [](const A& val) { return free::pureF(val);  });
-
-    return free::wrapT(r);
+    return STML<A>::readTVar(tvar);
 }
 
 template <typename A>
-STML<Unit> writeTVar(const TVar<A>& tvar,
-                     const A& val)
+STML<Unit> writeTVar(
+        const TVar<A>& tvar,
+        const A& val)
 {
-    auto r = free::WriteTVar<A, STML<Unit>>::toAny(
-                tvar,
-                val,
-                [](const Unit& unit) { return free::pureF(unit); }
-                );
-    return free::wrapT(r);
+    return STML<A>::writeTVar(tvar, val);
 }
 
 template <typename A>
-STML<Unit> modifyTVar(const TVar<A>& tvar,
-                      const std::function<A(A)>& f)
+STML<Unit> modifyTVar(
+        const TVar<A>& tvar,
+        const std::function<A(A)>& f)
 {
     return bind<A, Unit>(readTVar(tvar), [=](const A& val)
     {
@@ -95,12 +70,7 @@ template <typename A>
 A atomically(Context& context,
              const STML<A>& stml)
 {
-    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
-    {
-        return free::runSTML<A, free::StmlVisitor>(runtime, stml);
-    };
-
-    return runSTM<A>(context, runner);
+   return STML<A>::atomically(context, stml);
 }
 
 // Special version of newTVar
@@ -126,7 +96,7 @@ A readTVarIO(Context& context,
 
 const STML<Unit> mRetry = retry<Unit>();
 
-const STML<Unit> mUnit = pure<stm::Unit>(stm::unit);
+const STML<Unit> mUnit = pure<Unit>(unit);
 
 const auto mPure = [](const auto& val)
 {
@@ -214,8 +184,9 @@ STML<Unit> bothVoided(const STML<A>& ma,
 // TODO: rename it (`andThen`?)
 // TODO: make sequence as in Haskell
 template <typename A, typename B>
-STML<B> sequence(const STML<A>& ma,
-                 const STML<B>& mb)
+STML<B> sequence(
+        const STML<A>& ma,
+        const STML<B>& mb)
 {
     return both<A, B, B>(ma, mb, [](const A&, const B& b)
     {
@@ -226,7 +197,7 @@ STML<B> sequence(const STML<A>& ma,
 template <typename A>
 STML<Unit> voided(const STML<A>& ma)
 {
-    return sequence<A, Unit>(ma, pure(unit));
+    return sequence<A, Unit>(ma, STML<Unit>::pure(unit));
 }
 
 template <typename A, typename B>
@@ -254,14 +225,18 @@ template <typename A>
 STML<Unit> when(const STML<bool>& mCond,
                 const STML<A>& ma)
 {
-    return ifThenElse<Unit>(mCond, voided<A>(ma), pure(unit));
+    return ifThenElse<Unit>(mCond,
+                            voided<A>(ma),
+                            STML<Unit>::pure(unit));
 }
 
 template <typename A>
 STML<Unit> unless(const STML<bool>& mCond,
                   const STML<A>& ma)
 {
-    return ifThenElse<Unit>(mCond, pure(unit), voided<A>(ma));
+    return ifThenElse<Unit>(mCond,
+                            STML<Unit>::pure(unit),
+                            voided<A>(ma));
 }
 
 // Additional TVar combinators
@@ -363,7 +338,3 @@ STML<A> writeTVarRet(const TVar<A>& tvar,
 {
     return sequence<Unit, A>(writeTVar(tvar, a), readTVar(tvar));
 }
-
-} // namespace stm
-
-#endif // STM_H

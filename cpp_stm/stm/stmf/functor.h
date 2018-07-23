@@ -1,17 +1,11 @@
-#ifndef STM_FREE_FUNCTOR_H
-#define STM_FREE_FUNCTOR_H
+#ifndef STM_STMF_FUNCTOR_H
+#define STM_STMF_FUNCTOR_H
 
-#include <functional>
-#include <any>
-#include <variant>
-#include <iostream>
-
-#include "tvar.h"
-#include "stm_free.h"
+#include "stmf.h"
 
 namespace stm
 {
-namespace free
+namespace stmf
 {
 
 template <typename A, typename B>
@@ -80,7 +74,7 @@ STMF<B> fmap(const MapFunc<A, B>& f,
     return visitor.result;
 }
 
-} // namespace free
+} // namespace stmf
 } // namespace stm
 
-#endif // STM_FREE_FUNCTOR_H
+#endif // STM_STMF_FUNCTOR_H
