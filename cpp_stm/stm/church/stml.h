@@ -14,14 +14,16 @@ namespace church
 // STM Free Church-encoded
 
 template <typename A>
-struct STML
-{
-    std::function<
+using StmlFunc = std::function<
         Any(
             std::function<Any(A)>,
             std::function<Any(stmf::STMF<Any>)>
-        )> runF;
+        )>;
 
+template <typename A>
+struct STML
+{
+    StmlFunc<A> runF;
 };
 
 } // namespace church

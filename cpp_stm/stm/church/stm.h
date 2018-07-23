@@ -32,7 +32,7 @@ STML<B> bind(const STML<A>& ma,
 }
 
 template <typename A>
-STML<A> join(const STML<STML<A>> mma)
+STML<A> join(const STML<STML<A>>& mma)
 {
     return bind<STML<A>, A>(mma, [](const STML<A>& ma) { return ma; });
 }
