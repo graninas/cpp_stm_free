@@ -8,6 +8,7 @@
 #include "./impl/stupid_guid.h"
 
 //#define STM_DEBUG
+#define STM_CHURCH
 
 #ifdef STM_DEBUG
 #include <iostream>

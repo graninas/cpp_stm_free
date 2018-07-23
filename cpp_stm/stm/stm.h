@@ -6,8 +6,11 @@
 
 namespace stm {
 
-//using namespace free;
+#ifdef STM_CHURCH
 using namespace church;
+#else
+using namespace free;
+#endif
 
 } // namespace stm
 

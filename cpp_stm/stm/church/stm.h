@@ -13,9 +13,8 @@ namespace church
 {
 
 template <typename A, typename B>
-//STML<B> bind(const STML<A>& ma,
-STML<B> bind(const STML<A> ma,
-                 const std::function<STML<B>(A)>& f)
+STML<B> bind(const STML<A>& ma,
+             const std::function<STML<B>(A)>& f)
 {
     STML<B> n;
     n.runF = [=](const std::function<Any(B)>& p,

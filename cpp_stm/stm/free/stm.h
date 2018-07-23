@@ -16,9 +16,8 @@ namespace free
 // STML generic monadic interface.
 
 template <typename A, typename B>
-//STML<B> bind(const STML<A>& ma,
-STML<B> bind(const STML<A> ma,
-                 const std::function<STML<B>(A)>& f)
+STML<B> bind(const STML<A>& ma,
+             const std::function<STML<B>(A)>& f)
 {
     BindStmlVisitor<A, B> visitor(f);
     std::visit(visitor, ma.stml);
