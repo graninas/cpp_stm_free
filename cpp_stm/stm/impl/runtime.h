@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <random>
 
 #include "../context.h"
 
@@ -20,7 +21,7 @@ A runSTM(Context& context,
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(1, 100);
     auto backoffIntervalDice = std::bind(distribution, generator);
-    auto ustamp = context.newGUID();
+    auto ustamp = context.newId();
 
     while (true)
     {

@@ -5,8 +5,6 @@
 #include <functional>
 #include <any>
 
-#include "./impl/stupid_guid.h"
-
 //#define STM_DEBUG
 #define STM_CHURCH
 
@@ -17,7 +15,8 @@
 namespace stm
 {
 
-using TVarId = utils::GUID;
+using Id = std::uint32_t;
+using TVarId = Id;
 
 template <typename T>
 struct TVar

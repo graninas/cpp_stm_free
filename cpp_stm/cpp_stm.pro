@@ -17,13 +17,11 @@ INCLUDEPATH += /usr/include/x86_64-linux-gnu/c++/7
 INCLUDEPATH += /usr/include/c++/7
 
 SOURCES += \
-    stm/context.cpp \
-    stm/impl/stupid_guid.cpp
+    stm/context.cpp
 
 HEADERS += \
     stm/tvar.h \
     stm/context.h \
-    stm/impl/stupid_guid.h \
     stm/stmf/functor.h \
     stm/stmf/stmf.h \
     stm/impl/runtime.h \

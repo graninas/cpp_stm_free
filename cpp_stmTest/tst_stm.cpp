@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "common.h"
-#include "stm/impl/stupid_guid.h"
 #include "stm/stm.h"
 
 class STMTest : public QObject
@@ -16,8 +15,6 @@ public:
     STMTest();
 
 private Q_SLOTS:
-
-    void stupidGuidTest();
 
     void atomicallyTest();
     void coercingTest();
@@ -37,27 +34,6 @@ STMTest::STMTest()
 
 using TVarInt = stm::TVar<int>;
 using TVarStr = stm::TVar<std::string>;
-
-void STMTest::stupidGuidTest()
-{
-    // stupid test of stupid guid
-    std::vector<utils::GUID> guids;
-
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(1, 16);
-    utils::Dice dice = std::bind ( distribution, generator );
-
-    for (auto i = 0; i < 10; ++i)
-    {
-        utils::GUID newGUID = utils::newGUID(dice);
-        QVERIFY(newGUID.size() == 32);
-        for (std::vector<int>::size_type j = 0; j < guids.size(); ++j)
-        {
-            QVERIFY(guids[j] != newGUID);
-        }
-        guids.push_back(newGUID);
-    }
-}
 
 void STMTest::atomicallyTest()
 {

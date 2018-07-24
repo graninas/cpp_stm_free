@@ -4,9 +4,7 @@ namespace stm
 {
 
 Context::Context()
-    : _generator()
-    , _distribution(std::uniform_int_distribution<int>(1, 16))
-    , _dice(std::bind(_distribution, _generator))
+    : _id(0)
 {
 }
 
@@ -17,10 +15,9 @@ TVars Context::takeSnapshot()
     return tvars;
 }
 
-TVarId Context::newGUID()
+Id Context::newId()
 {
-    std::lock_guard g(_lock);
-    return utils::newGUID(_dice);
+    return _id.fetch_add(1, std::memory_order_relaxed);
 }
 
 bool Context::tryCommit(const UStamp& ustamp, const TVars& stagedTvars)
@@ -64,9 +61,9 @@ AtomicRuntime::AtomicRuntime(Context &context, const UStamp &ustamp, const TVars
 {
 }
 
-TVarId AtomicRuntime::newGUID()
+TVarId AtomicRuntime::newId()
 {
-    return _context.newGUID();
+    return _context.newId();
 }
 
 UStamp AtomicRuntime::getUStamp() const

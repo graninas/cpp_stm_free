@@ -4,16 +4,15 @@
 #include <map>
 #include <any>
 #include <mutex>
-#include <random>
 #include <optional>
+#include <atomic>
 
-#include "./impl/stupid_guid.h"
 #include "tvar.h"
 
 namespace stm
 {
 
-using UStamp = utils::GUID;
+using UStamp = Id;
 
 struct TVarHandle
 {
@@ -28,11 +27,8 @@ class Context
 {
 private:
 
+    std::atomic<Id> _id;
     TVars _tvars;
-
-    std::default_random_engine _generator;
-    std::uniform_int_distribution<int> _distribution;
-    utils::Dice _dice;
 
     std::mutex _lock;
 
@@ -41,9 +37,8 @@ public:
 
     bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
 
-    TVarId newGUID();
+    Id newId();
     TVars takeSnapshot();
-
 };
 
 class AtomicRuntime
@@ -57,7 +52,7 @@ private:
 public:
     AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
 
-    TVarId newGUID();
+    TVarId newId();
     UStamp getUStamp() const;
     TVars getStagedTVars() const;
 

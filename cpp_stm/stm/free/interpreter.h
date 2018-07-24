@@ -36,9 +36,9 @@ struct StmfVisitor
     template <typename A>
     void operator()(const stmf::NewTVar<A, STML<Ret>>& f)
     {
-        auto tvarId = _runtime.newGUID();
+        auto tvarId = _runtime.newId();
 
-//        std::cout << "<" << _runtime.getUStamp() << "> NewTVar. GUID: " << tvarId << ", name: " << f.name << std::endl;
+//        std::cout << "<" << _runtime.getUStamp() << "> NewTVar. Id: " << tvarId << ", name: " << f.name << std::endl;
 
         TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
         _runtime.addTVarHandle(tvarId, tvarHandle);
@@ -49,7 +49,7 @@ struct StmfVisitor
     template <typename A>
     void operator()(const stmf::ReadTVar<A, STML<Ret>>& f)
     {
-//        std::cout << "<" << _runtime.getUStamp() << "> ReadTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
+//        std::cout << "<" << _runtime.getUStamp() << "> ReadTVar. Id: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
         TVarHandle tvarHandle = _runtime.getTVarHandle(f.tvar.id);
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvarHandle.data));
@@ -58,7 +58,7 @@ struct StmfVisitor
     template <typename A>
     void operator()(const stmf::WriteTVar<A, STML<Ret>>& f)
     {
-//        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. GUID: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
+//        std::cout << "<" << _runtime.getUStamp() << "> WriteTVar. Id: " << f.tvar.id << ", name: " << f.tvar.name << std::endl;
 
         _runtime.setTVarHandleData(f.tvar.id, f.val);
         result = runSTML<Ret, StmlVisitor>(_runtime, f.next(unit));
