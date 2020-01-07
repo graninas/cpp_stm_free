@@ -9,22 +9,20 @@ Working library for Software Transactional Memory that is built using several FP
 - It operates by custom ADTs.
 - It is usable despite it's experimental.
 
-**See also:**
-- Implementation in Haskell: [stm-free](https://github.com/graninas/stm-free)
-- Implementation of Haskell's Parsec in C++ using the same Free Monad approach: [cpp_parsec_free](https://github.com/graninas/cpp_parsec_free)
+**Additional materials**
+- [Tutorial: Software Transactional Memory in C++](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525)
+- [Dining Philosophers Problem solved (variant 1)](https://github.com/graninas/cpp_philosophers_stm/blob/master/src/philosophers/philosophers_stm.h)
+- [Dining Philosophers Problem solved (variant 2)](https://github.com/graninas/cpp_philosophers_stm/blob/philosophers-variant2/src/philosophers/philosophers_stm.h)
+- [More samples](https://github.com/graninas/stm_samples)
+- [stm-free](https://github.com/graninas/stm-free) | Implementation in Haskell
+- [cpp_parsec_free](https://github.com/graninas/cpp_parsec_free) | Implementation of Haskell's Parsec in C++ using the same Free Monad approach
+- [Functional Approach To Software Transactional Memory in C++ (Talk, Rus)](https://www.youtube.com/watch?v=VHZPcz8HwZs) | [Slides (Eng)](https://docs.google.com/presentation/d/1_znOLZDKruKRNLA58TDlnXYQjTg9sXNJHPOLHfDTjeU/edit?usp=sharing) | My talk about this approach at C++ Russia 2018, Saint-Petersburg
+- [Functional Programming in C++ and Concurrent Calculations (Talk, Rus)](https://www.youtube.com/watch?v=0v0T_Mny7EY) | [Slides (Eng)](https://docs.google.com/presentation/d/1Fuq1EwaB3tKkNckLau56WhO_VtbNEDJb-Kc6MpfBi0k/edit?usp=sharing) | My talk about this approach at LambdaNsk meetup, Novosibirsk, 2019
 
 Requirements
 ------------
 
 - GCC 7.2
-
-Tutorials and samples
----------------------
-
- - [Tutorial: Software Transactional Memory in C++](https://gist.github.com/graninas/c7e0a603f3a22c7e85daa4599bf92525)
- - [Dining Philosophers Problem solved (variant 1)](https://github.com/graninas/cpp_philosophers_stm/blob/master/src/philosophers/philosophers_stm.h)
- - [Dining Philosophers Problem solved (variant 2)](https://github.com/graninas/cpp_philosophers_stm/blob/philosophers-variant2/src/philosophers/philosophers_stm.h)
- - [More samples](https://github.com/graninas/stm_samples)
 
 Troubleshooting
 ---------------
