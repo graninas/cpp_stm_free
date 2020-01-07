@@ -9,6 +9,10 @@ Working library for Software Transactional Memory that is built using several FP
 - It operates by custom ADTs.
 - It is usable despite it's experimental.
 
+**See also:**
+- Implementation in Haskell: [stm-free](https://github.com/graninas/stm-free)
+- Implementation of Haskell's Parsec in C++ using the same Free Monad approach: [cpp_parsec_free](https://github.com/graninas/cpp_parsec_free)
+
 Requirements
 ------------
 
